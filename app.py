@@ -61,7 +61,7 @@ def login_page():
 
 @app.route('/auth/login')
 def auth_login_page():
-    return render_template('auth/login.html')
+    return render_template('auth/login.html', unread_notifications_count=0)
 
 @app.route('/login')
 def login_redirect():
