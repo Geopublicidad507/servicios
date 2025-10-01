@@ -6,6 +6,9 @@ from models_mongo import init_mongo_db, User
 import bcrypt
 import jwt
 
+# Import blueprints
+from routes.auth import auth_bp
+
 app = Flask(__name__)
 
 # Configuration
@@ -232,6 +235,9 @@ with app.app_context():
         
     except Exception as e:
         print(f'❌ Error en limpieza inicial: {e}')
+
+# Register blueprints
+app.register_blueprint(auth_bp, url_prefix='/auth')
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5003))
