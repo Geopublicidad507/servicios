@@ -65,19 +65,6 @@ Sistema integral para la administración y gestión de Propiedades Horizontales 
    http://localhost:5003
    ```
 
-## Credenciales por defecto
-
-- **Administrador General**:
-  - Usuario: admin@phcontrol.com
-  - Contraseña: admin123
-
-- **Administrador PH**:
-  - Usuario: adminph@phcontrol.com
-  - Contraseña: admin123
-
-- **Residente**:
-  - Usuario: residente@phcontrol.com
-  - Contraseña: resident123
 
 ## Tecnologías Utilizadas
 

@@ -1,3 +1,0 @@
-Usuario: mailto:admin@phcontrol.com
-
-Contraseña: admin123
