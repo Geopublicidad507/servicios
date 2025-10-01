@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Subir Documento - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Subir Documento</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('documents.index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a documentos
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data" id="upload-form">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="property_id" class="form-label">Propiedad *</label>
+                    <select name="property_id" id="property_id" class="form-select" required>
+                        <option value="">Seleccione una propiedad</option>
+                        {% for property in properties %}
+                        <option value="{{ property.id }}">{{ property.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="document_type" class="form-label">Tipo de documento *</label>
+                    <select name="document_type" id="document_type" class="form-select" required>
+                        <option value="">Seleccione un tipo</option>
+                        <option value="contract">Contrato</option>
+                        <option value="act">Acta</option>
+                        <option value="regulation">Reglamento</option>
+                        <option value="plan">Plano</option>
+                        <option value="report">Informe</option>
+                        <option value="other">Otro</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="title" class="form-label">Título *</label>
+                <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="description" class="form-label">Descripción</label>
+                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="version" class="form-label">Versión</label>
+                    <input type="text" class="form-control" id="version" name="version" value="1.0">
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check mt-4">
+                        <input class="form-check-input" type="checkbox" id="is_public" name="is_public">
+                        <label class="form-check-label" for="is_public">
+                            Documento público (visible para residentes)
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label for="file" class="form-label">Archivo *</label>
+                <input type="file" class="form-control" id="file" name="file" required>
+                <div class="form-text">
+                    Formatos permitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, TXT
+                </div>
+            </div>
+            
+            <div class="progress mb-3 d-none" id="upload-progress">
+                <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="button" class="btn btn-outline-secondary" onclick="history.back()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Subir documento</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('upload-form');
+        const progressBar = document.querySelector('#upload-progress .progress-bar');
+        const progressContainer = document.getElementById('upload-progress');
+        
+        form.addEventListener('submit', function(e) {
+            // Mostrar barra de progreso
+            progressContainer.classList.remove('d-none');
+            
+            // Simular progreso (en una implementación real, esto se haría con AJAX)
+            let progress = 0;
+            const interval = setInterval(function() {
+                progress += 10;
+                progressBar.style.width = progress + '%';
+                progressBar.setAttribute('aria-valuenow', progress);
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                }
+            }, 300);
+        });
+    });
+</script>
+{% endblock %}

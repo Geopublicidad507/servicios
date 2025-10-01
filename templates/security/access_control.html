@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+
+{% block title %}Control de Acceso - PH Control{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Control de Acceso</h1>
+        <a href="{{ url_for('security.register_visitor') }}" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus fa-sm text-white-50"></i> Registrar Visitante
+        </a>
+    </div>
+
+    <!-- Active Visitors Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">Visitantes Activos</h6>
+            <div class="dropdown no-arrow">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown">
+                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right shadow">
+                    <a class="dropdown-item" href="{{ url_for('security.visitors') }}">Ver Todos los Visitantes</a>
+                    <a class="dropdown-item" href="{{ url_for('security.reports') }}">Reportes de Seguridad</a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if active_visitors %}
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="activeVisitorsTable">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Unidad Visitada</th>
+                                <th>Hora de Entrada</th>
+                                <th>Duración</th>
+                                <th>Propósito</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for visitor in active_visitors %}
+                            <tr id="visitor-{{ visitor.id }}">
+                                <td>{{ visitor.visitor_name }}</td>
+                                <td>{{ visitor.unit_visited }}</td>
+                                <td>{{ visitor.entry_time.strftime('%H:%M') }}</td>
+                                <td class="duration-cell" data-entry-time="{{ visitor.entry_time.isoformat() }}">
+                                    <!-- Duration will be calculated by JavaScript -->
+                                </td>
+                                <td>{{ visitor.purpose or 'No especificado' }}</td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" onclick="exitVisitor({{ visitor.id }})">
+                                        <i class="fas fa-sign-out-alt"></i> Registrar Salida
+                                    </button>
+                                    <a href="{{ url_for('security.edit_visitor_log', log_id=visitor.id) }}" 
+                                       class="btn btn-info btn-sm">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-users fa-3x text-gray-300 mb-3"></i>
+                    <h5 class="text-gray-500">No hay visitantes activos</h5>
+                    <p class="text-gray-400">Todos los visitantes han registrado su salida.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Stats Row -->
+    <div class="row">
+        <!-- Today's Visitors -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Visitantes Hoy
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="todayVisitors">
+                                {{ active_visitors|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Visitors -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Visitantes Activos
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ active_visitors|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Properties -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Propiedades
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ properties|length }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-building fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Acciones Rápidas
+                            </div>
+                            <div class="mt-2">
+                                <a href="{{ url_for('security.register_visitor') }}" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-plus"></i> Nuevo Visitante
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-cogs fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Exit Visitor Modal -->
+<div class="modal fade" id="exitVisitorModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Salida</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas registrar la salida de este visitante?</p>
+                <p><strong>Visitante:</strong> <span id="visitorNameModal"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmExitBtn">Registrar Salida</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let visitorToExit = null;
+
+function exitVisitor(visitorId) {
+    const row = document.getElementById(`visitor-${visitorId}`);
+    const visitorName = row.cells[0].textContent;
+    
+    document.getElementById('visitorNameModal').textContent = visitorName;
+    visitorToExit = visitorId;
+    
+    $('#exitVisitorModal').modal('show');
+}
+
+document.getElementById('confirmExitBtn').addEventListener('click', function() {
+    if (visitorToExit) {
+        fetch(`/security/visitors/${visitorToExit}/exit`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove row from table
+                const row = document.getElementById(`visitor-${visitorToExit}`);
+                row.remove();
+                
+                // Update counter
+                const activeCount = document.querySelectorAll('#activeVisitorsTable tbody tr').length;
+                document.getElementById('todayVisitors').textContent = activeCount;
+                
+                // Show success message
+                showAlert('success', data.message);
+                
+                // Check if no more active visitors
+                if (activeCount === 0) {
+                    location.reload();
+                }
+            } else {
+                showAlert('error', data.message);
+            }
+        })
+        .catch(error => {
+            showAlert('error', 'Error al registrar la salida');
+        });
+        
+        $('#exitVisitorModal').modal('hide');
+        visitorToExit = null;
+    }
+});
+
+function showAlert(type, message) {
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    container.insertAdjacentHTML('afterbegin', alertHtml);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        const alert = container.querySelector('.alert');
+        if (alert) {
+            alert.remove();
+        }
+    }, 5000);
+}
+
+// Update duration for active visitors
+function updateDurations() {
+    const durationCells = document.querySelectorAll('.duration-cell');
+    
+    durationCells.forEach(cell => {
+        const entryTime = new Date(cell.dataset.entryTime);
+        const now = new Date();
+        const diff = now - entryTime;
+        
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        
+        cell.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    });
+}
+
+// Update durations every minute
+setInterval(updateDurations, 60000);
+
+// Initial duration update
+document.addEventListener('DOMContentLoaded', updateDurations);
+</script>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Enviar Notificación - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Enviar Notificación</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('communication.notifications') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a notificaciones
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            <div class="mb-3">
+                <label for="title" class="form-label">Título *</label>
+                <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="message" class="form-label">Mensaje *</label>
+                <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+            </div>
+            
+            <div class="mb-3">
+                <label for="notification_type" class="form-label">Tipo de notificación</label>
+                <select class="form-select" id="notification_type" name="notification_type">
+                    <option value="info" selected>Información</option>
+                    <option value="warning">Advertencia</option>
+                    <option value="success">Éxito</option>
+                    <option value="error">Error</option>
+                    <option value="announcement">Anuncio público</option>
+                </select>
+                <div class="form-text">
+                    Los anuncios públicos aparecerán en la sección de anuncios.
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Destinatarios</label>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="all_properties" checked>
+                                <label class="form-check-label" for="all_properties">
+                                    Todas las propiedades
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div id="property_selection" class="mb-3" style="display: none;">
+                            <label class="form-label">Seleccionar propiedades</label>
+                            <div class="row">
+                                {% for property in properties %}
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="property_ids" value="{{ property.id }}" id="property_{{ property.id }}">
+                                        <label class="form-check-label" for="property_{{ property.id }}">
+                                            {{ property.name }}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="send_email" name="send_email">
+                    <label class="form-check-label" for="send_email">
+                        Enviar también por correo electrónico
+                    </label>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="button" class="btn btn-outline-secondary" onclick="history.back()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Enviar notificación</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const allPropertiesCheckbox = document.getElementById('all_properties');
+        const propertySelection = document.getElementById('property_selection');
+        const propertyCheckboxes = document.querySelectorAll('input[name="property_ids"]');
+        
+        allPropertiesCheckbox.addEventListener('change', function() {
+            propertySelection.style.display = this.checked ? 'none' : 'block';
+            
+            // Check/uncheck all property checkboxes
+            propertyCheckboxes.forEach(function(checkbox) {
+                checkbox.checked = false;
+            });
+        });
+    });
+</script>
+{% endblock %}

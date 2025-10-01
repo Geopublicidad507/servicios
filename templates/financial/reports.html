@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes Financieros - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Reportes Financieros</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('financial.index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a finanzas
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Estado de Resultados -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Estado de Resultados</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Genere un reporte de ingresos y gastos para un período específico.</p>
+                
+                <form action="{{ url_for('financial.income_statement') }}" method="get" class="mt-3">
+                    <div class="mb-3">
+                        <label for="property_id" class="form-label">Propiedad</label>
+                        <select name="property_id" id="property_id" class="form-select">
+                            <option value="">Todas las propiedades</option>
+                            {% for property in properties %}
+                            <option value="{{ property.id }}">{{ property.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="year" class="form-label">Año</label>
+                            <select name="year" id="year" class="form-select" required>
+                                {% for y in range(2023, 2026) %}
+                                <option value="{{ y }}" {% if y == 2025 %}selected{% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="month" class="form-label">Mes</label>
+                            <select name="month" id="month" class="form-select">
+                                <option value="">Todo el año</option>
+                                <option value="1">Enero</option>
+                                <option value="2">Febrero</option>
+                                <option value="3">Marzo</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Mayo</option>
+                                <option value="6">Junio</option>
+                                <option value="7">Julio</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Septiembre</option>
+                                <option value="10">Octubre</option>
+                                <option value="11">Noviembre</option>
+                                <option value="12">Diciembre</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="format" class="form-label">Formato</label>
+                        <select name="format" id="format" class="form-select">
+                            <option value="html">HTML</option>
+                            <option value="pdf">PDF</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-file-earmark-text"></i> Generar Reporte
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Reporte de Morosidad -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Reporte de Morosidad</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Genere un reporte de pagos vencidos y morosidad por propiedad.</p>
+                
+                <form action="{{ url_for('financial.overdue_report') }}" method="get" class="mt-3">
+                    <div class="mb-3">
+                        <label for="property_id_overdue" class="form-label">Propiedad</label>
+                        <select name="property_id" id="property_id_overdue" class="form-select">
+                            <option value="">Todas las propiedades</option>
+                            {% for property in properties %}
+                            <option value="{{ property.id }}">{{ property.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="days_overdue" class="form-label">Días de morosidad</label>
+                        <select name="days_overdue" id="days_overdue" class="form-select">
+                            <option value="0">Cualquier morosidad</option>
+                            <option value="30">Más de 30 días</option>
+                            <option value="60">Más de 60 días</option>
+                            <option value="90">Más de 90 días</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="format_overdue" class="form-label">Formato</label>
+                        <select name="format" id="format_overdue" class="form-select">
+                            <option value="html">HTML</option>
+                            <option value="pdf">PDF</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-file-earmark-text"></i> Generar Reporte
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Balance General -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Balance General</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Genere un balance general de activos y pasivos.</p>
+                
+                <form action="{{ url_for('financial.balance_sheet') }}" method="get" class="mt-3">
+                    <div class="mb-3">
+                        <label for="property_id_balance" class="form-label">Propiedad</label>
+                        <select name="property_id" id="property_id_balance" class="form-select">
+                            <option value="">Todas las propiedades</option>
+                            {% for property in properties %}
+                            <option value="{{ property.id }}">{{ property.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="date_balance" class="form-label">Fecha de corte</label>
+                        <input type="date" class="form-control" id="date_balance" name="date">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="format_balance" class="form-label">Formato</label>
+                        <select name="format" id="format_balance" class="form-select">
+                            <option value="html">HTML</option>
+                            <option value="pdf">PDF</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-file-earmark-text"></i> Generar Reporte
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Flujo de Caja -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Flujo de Caja</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Genere un reporte de flujo de caja para un período específico.</p>
+                
+                <form action="{{ url_for('financial.cash_flow') }}" method="get" class="mt-3">
+                    <div class="mb-3">
+                        <label for="property_id_cashflow" class="form-label">Propiedad</label>
+                        <select name="property_id" id="property_id_cashflow" class="form-select">
+                            <option value="">Todas las propiedades</option>
+                            {% for property in properties %}
+                            <option value="{{ property.id }}">{{ property.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="date_from_cashflow" class="form-label">Desde</label>
+                            <input type="date" class="form-control" id="date_from_cashflow" name="date_from">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="date_to_cashflow" class="form-label">Hasta</label>
+                            <input type="date" class="form-control" id="date_to_cashflow" name="date_to">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="format_cashflow" class="form-label">Formato</label>
+                        <select name="format" id="format_cashflow" class="form-select">
+                            <option value="html">HTML</option>
+                            <option value="pdf">PDF</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-file-earmark-text"></i> Generar Reporte
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default date to today
+        const today = new Date();
+        document.getElementById('date_balance').valueAsDate = today;
+        document.getElementById('date_to_cashflow').valueAsDate = today;
+        
+        // Set default from date to first day of current month
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        document.getElementById('date_from_cashflow').valueAsDate = firstDay;
+    });
+</script>
+{% endblock %}

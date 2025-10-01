@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Registro de Visitante - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Editar Registro de Visitante</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('security.visitors') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a visitantes
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="visitor_name" class="form-label">Nombre del Visitante *</label>
+                    <input type="text" class="form-control" id="visitor_name" name="visitor_name" value="{{ visitor_log.visitor_name }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="visitor_id" class="form-label">Documento de Identidad</label>
+                    <input type="text" class="form-control" id="visitor_id" name="visitor_id" value="{{ visitor_log.visitor_id or '' }}" placeholder="Cédula, pasaporte, etc.">
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="unit_visited" class="form-label">Unidad Visitada *</label>
+                    <input type="text" class="form-control" id="unit_visited" name="unit_visited" value="{{ visitor_log.unit_visited }}" placeholder="Ej: 101, A-5, etc." required>
+                </div>
+                <div class="col-md-6">
+                    <label for="authorized_by" class="form-label">Autorizado por</label>
+                    <input type="text" class="form-control" id="authorized_by" name="authorized_by" value="{{ visitor_log.authorized_by or '' }}" placeholder="Nombre del residente">
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="purpose" class="form-label">Motivo de la Visita</label>
+                <select class="form-select" id="purpose" name="purpose">
+                    <option value="">Seleccione un motivo</option>
+                    <option value="Personal" {% if visitor_log.purpose == 'Personal' %}selected{% endif %}>Visita Personal</option>
+                    <option value="Trabajo" {% if visitor_log.purpose == 'Trabajo' %}selected{% endif %}>Trabajo/Servicio</option>
+                    <option value="Delivery" {% if visitor_log.purpose == 'Delivery' %}selected{% endif %}>Entrega/Delivery</option>
+                    <option value="Mantenimiento" {% if visitor_log.purpose == 'Mantenimiento' %}selected{% endif %}>Mantenimiento</option>
+                    <option value="Proveedor" {% if visitor_log.purpose == 'Proveedor' %}selected{% endif %}>Proveedor</option>
+                    <option value="Otro" {% if visitor_log.purpose == 'Otro' %}selected{% endif %}>Otro</option>
+                </select>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="entry_time" class="form-label">Fecha y Hora de Entrada</label>
+                    <input type="datetime-local" class="form-control" id="entry_time" name="entry_time" 
+                           value="{{ visitor_log.entry_time.strftime('%Y-%m-%dT%H:%M') if visitor_log.entry_time else '' }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="exit_time" class="form-label">Fecha y Hora de Salida</label>
+                    <div class="input-group">
+                        <input type="datetime-local" class="form-control" id="exit_time" name="exit_time" 
+                               value="{{ visitor_log.exit_time.strftime('%Y-%m-%dT%H:%M') if visitor_log.exit_time else '' }}">
+                        {% if visitor_log.exit_time %}
+                        <button type="button" class="btn btn-outline-secondary" onclick="clearExitTime()">
+                            <i class="bi bi-x"></i> Limpiar
+                        </button>
+                        {% endif %}
+                    </div>
+                    <input type="hidden" id="clear_exit_time" name="clear_exit_time" value="">
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="notes" class="form-label">Notas Adicionales</label>
+                <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Información adicional sobre la visita">{{ visitor_log.notes or '' }}</textarea>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="button" class="btn btn-outline-secondary" onclick="history.back()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Actualizar Registro</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Visitor Information Panel -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Información del Registro</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Detalles de la Visita</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Registro creado:</strong> {{ visitor_log.created_at|datetime }}</li>
+                    <li><strong>Estado:</strong> 
+                        {% if visitor_log.exit_time %}
+                        <span class="badge bg-secondary">Finalizada</span>
+                        {% else %}
+                        <span class="badge bg-success">Activa</span>
+                        {% endif %}
+                    </li>
+                    {% if visitor_log.exit_time %}
+                    <li><strong>Duración:</strong> {{ ((visitor_log.exit_time - visitor_log.entry_time).total_seconds() / 3600)|round(1) }} horas</li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6>Acciones Rápidas</h6>
+                {% if not visitor_log.exit_time %}
+                <button class="btn btn-outline-danger btn-sm mb-2" onclick="registerExitNow()">
+                    <i class="bi bi-box-arrow-right"></i> Registrar Salida Ahora
+                </button>
+                {% endif %}
+                <button class="btn btn-outline-info btn-sm mb-2" onclick="setCurrentTime('entry')">
+                    <i class="bi bi-clock"></i> Entrada = Ahora
+                </button>
+                <button class="btn btn-outline-info btn-sm mb-2" onclick="setCurrentTime('exit')">
+                    <i class="bi bi-clock"></i> Salida = Ahora
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function clearExitTime() {
+        document.getElementById('exit_time').value = '';
+        document.getElementById('clear_exit_time').value = '1';
+    }
+    
+    function registerExitNow() {
+        if (confirm('¿Registrar la salida del visitante en este momento?')) {
+            const now = new Date();
+            const formattedTime = now.getFullYear() + '-' + 
+                                String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                                String(now.getDate()).padStart(2, '0') + 'T' + 
+                                String(now.getHours()).padStart(2, '0') + ':' + 
+                                String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('exit_time').value = formattedTime;
+            document.getElementById('clear_exit_time').value = '';
+        }
+    }
+    
+    function setCurrentTime(type) {
+        const now = new Date();
+        const formattedTime = now.getFullYear() + '-' + 
+                            String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                            String(now.getDate()).padStart(2, '0') + 'T' + 
+                            String(now.getHours()).padStart(2, '0') + ':' + 
+                            String(now.getMinutes()).padStart(2, '0');
+        
+        if (type === 'entry') {
+            document.getElementById('entry_time').value = formattedTime;
+        } else if (type === 'exit') {
+            document.getElementById('exit_time').value = formattedTime;
+            document.getElementById('clear_exit_time').value = '';
+        }
+    }
+    
+    // Clear the clear_exit_time flag when exit_time is manually changed
+    document.getElementById('exit_time').addEventListener('change', function() {
+        if (this.value) {
+            document.getElementById('clear_exit_time').value = '';
+        }
+    });
+</script>
+{% endblock %}

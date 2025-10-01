@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.full_name }} - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{{ user.full_name }}</h1>
+        <div>
+            <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn btn-warning btn-sm">
+                <i class="fas fa-edit fa-sm text-white-50"></i> Editar
+            </a>
+            <a href="{{ url_for('admin.users') }}" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- User Details -->
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Información del Usuario</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="icon-circle bg-primary mx-auto mb-3" style="width: 80px; height: 80px;">
+                            <i class="fas fa-user text-white" style="font-size: 2rem; line-height: 80px;"></i>
+                        </div>
+                        <h4>{{ user.full_name }}</h4>
+                        {% if user.role == 'admin_general' %}
+                            <span class="badge badge-danger">Administrador General</span>
+                        {% elif user.role == 'admin_ph' %}
+                            <span class="badge badge-warning">Administrador PH</span>
+                        {% elif user.role == 'resident' %}
+                            <span class="badge badge-info">Residente</span>
+                        {% elif user.role == 'provider' %}
+                            <span class="badge badge-secondary">Proveedor</span>
+                        {% endif %}
+                    </div>
+
+                    <table class="table table-borderless">
+                        <tr>
+                            <td><strong>ID:</strong></td>
+                            <td>{{ user.id }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Email:</strong></td>
+                            <td>{{ user.email }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Teléfono:</strong></td>
+                            <td>{{ user.phone or 'No especificado' }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Estado:</strong></td>
+                            <td>
+                                {% if user.is_active %}
+                                    <span class="badge badge-success">Activo</span>
+                                {% else %}
+                                    <span class="badge badge-secondary">Inactivo</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Fecha de Registro:</strong></td>
+                            <td>{{ user.created_at|datetime }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Último Acceso:</strong></td>
+                            <td>
+                                {% if user.last_login %}
+                                    {{ user.last_login|datetime }}
+                                {% else %}
+                                    <span class="text-muted">Nunca</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Statistics -->
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Estadísticas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="border-right">
+                                <h4 class="text-primary">{{ user_units|length }}</h4>
+                                <small class="text-muted">Unidades</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border-right">
+                                <h4 class="text-success">{{ user_payments }}</h4>
+                                <small class="text-muted">Pagos</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <h4 class="text-info">{{ user_tickets }}</h4>
+                            <small class="text-muted">Tickets</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Units -->
+            {% if user_units %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Unidades Asignadas</h6>
+                </div>
+                <div class="card-body">
+                    {% for unit in user_units %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ unit.unit_identifier }}</strong>
+                            <br>
+                            <small class="text-muted">{{ unit.property.name }}</small>
+                        </div>
+                        <div>
+                            {% if unit.is_occupied %}
+                                <span class="badge badge-success">Ocupada</span>
+                            {% else %}
+                                <span class="badge badge-secondary">Libre</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if not loop.last %}<hr>{% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Pagos Recientes</h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_payments %}
+                        <div class="list-group list-group-flush">
+                            {% for payment in recent_payments %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ payment.amount|currency }}</h6>
+                                    <small>{{ payment.payment_date|date }}</small>
+                                </div>
+                                <p class="mb-1">{{ payment.payment_type|title }}</p>
+                                <small>{{ payment.unit.unit_identifier }} - {{ payment.unit.property.name }}</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">No hay pagos registrados</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Tickets Recientes</h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_tickets %}
+                        <div class="list-group list-group-flush">
+                            {% for ticket in recent_tickets %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ ticket.title }}</h6>
+                                    <small>{{ ticket.created_at|date }}</small>
+                                </div>
+                                <p class="mb-1">{{ ticket.description[:100] }}{{ '...' if ticket.description|length > 100 else '' }}</p>
+                                <small>{{ ticket.status|status_badge|safe }}</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">No hay tickets registrados</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

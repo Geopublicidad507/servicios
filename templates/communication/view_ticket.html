@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket #{{ ticket.id }} - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Ticket #{{ ticket.id }}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('communication.tickets') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a tickets
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{{ ticket.title }}</h5>
+                <div>
+                    {% if ticket.status == 'open' %}
+                    <span class="badge bg-primary">Abierto</span>
+                    {% elif ticket.status == 'in_progress' %}
+                    <span class="badge bg-warning">En progreso</span>
+                    {% elif ticket.status == 'resolved' %}
+                    <span class="badge bg-success">Resuelto</span>
+                    {% elif ticket.status == 'closed' %}
+                    <span class="badge bg-secondary">Cerrado</span>
+                    {% endif %}
+                    
+                    {% if ticket.priority == 'low' %}
+                    <span class="badge bg-info">Prioridad: Baja</span>
+                    {% elif ticket.priority == 'medium' %}
+                    <span class="badge bg-primary">Prioridad: Media</span>
+                    {% elif ticket.priority == 'high' %}
+                    <span class="badge bg-warning">Prioridad: Alta</span>
+                    {% elif ticket.priority == 'urgent' %}
+                    <span class="badge bg-danger">Prioridad: Urgente</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h6>Descripción</h6>
+                    <p class="card-text">{{ ticket.description }}</p>
+                </div>
+                
+                {% if ticket.resolution %}
+                <div class="mb-4">
+                    <h6>Resolución</h6>
+                    <p class="card-text">{{ ticket.resolution }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Categoría</h6>
+                        <p>{{ ticket.category|replace('_', ' ')|title }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Creado por</h6>
+                        <p>{{ ticket.user.full_name }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-muted">
+                <div class="row">
+                    <div class="col-md-6">
+                        Creado: {{ ticket.created_at|datetime }}
+                    </div>
+                    <div class="col-md-6 text-end">
+                        Actualizado: {{ ticket.updated_at|datetime }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        {% if current_user.role in ['admin_general', 'admin_ph'] %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Actualizar ticket</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('communication.update_ticket', ticket_id=ticket.id) }}" method="post">
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Estado</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="open" {% if ticket.status == 'open' %}selected{% endif %}>Abierto</option>
+                            <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>En progreso</option>
+                            <option value="resolved" {% if ticket.status == 'resolved' %}selected{% endif %}>Resuelto</option>
+                            <option value="closed" {% if ticket.status == 'closed' %}selected{% endif %}>Cerrado</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="resolution" class="form-label">Resolución</label>
+                        <textarea class="form-control" id="resolution" name="resolution" rows="4">{{ ticket.resolution or '' }}</textarea>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Actualizar ticket</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Información adicional</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        ID del ticket
+                        <span>{{ ticket.id }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Estado
+                        <span>
+                            {% if ticket.status == 'open' %}
+                            <span class="badge bg-primary">Abierto</span>
+                            {% elif ticket.status == 'in_progress' %}
+                            <span class="badge bg-warning">En progreso</span>
+                            {% elif ticket.status == 'resolved' %}
+                            <span class="badge bg-success">Resuelto</span>
+                            {% elif ticket.status == 'closed' %}
+                            <span class="badge bg-secondary">Cerrado</span>
+                            {% endif %}
+                        </span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Prioridad
+                        <span>
+                            {% if ticket.priority == 'low' %}
+                            <span class="badge bg-info">Baja</span>
+                            {% elif ticket.priority == 'medium' %}
+                            <span class="badge bg-primary">Media</span>
+                            {% elif ticket.priority == 'high' %}
+                            <span class="badge bg-warning">Alta</span>
+                            {% elif ticket.priority == 'urgent' %}
+                            <span class="badge bg-danger">Urgente</span>
+                            {% endif %}
+                        </span>
+                    </li>
+                    {% if ticket.assigned_to %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Asignado a
+                        <span>{{ ticket.assigned_user.full_name }}</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

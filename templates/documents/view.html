@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}{{ document.title }} - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ document.title }}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('documents.index') }}" class="btn btn-sm btn-outline-secondary me-2">
+            <i class="bi bi-arrow-left"></i> Volver a documentos
+        </a>
+        <a href="{{ url_for('documents.download', document_id=document.id) }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-download"></i> Descargar
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Información del documento</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6>Descripción</h6>
+                    <p>{{ document.description or 'Sin descripción' }}</p>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6>Propiedad</h6>
+                        <p>{{ document.property.name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Tipo de documento</h6>
+                        <p>{{ document.document_type|replace('_', ' ')|title }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6>Versión</h6>
+                        <p>{{ document.version }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Visibilidad</h6>
+                        <p>
+                            {% if document.is_public %}
+                            <span class="badge bg-success">Público</span> Visible para residentes
+                            {% else %}
+                            <span class="badge bg-secondary">Privado</span> Solo administradores
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if document.mime_type and document.mime_type.startswith('image/') %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Vista previa</h5>
+            </div>
+            <div class="card-body text-center">
+                <img src="{{ url_for('documents.download', document_id=document.id) }}" class="img-fluid" alt="{{ document.title }}">
+            </div>
+        </div>
+        {% elif document.mime_type == 'application/pdf' %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Vista previa</h5>
+            </div>
+            <div class="card-body">
+                <div class="ratio ratio-16x9">
+                    <iframe src="{{ url_for('documents.download', document_id=document.id) }}" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Detalles</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Tamaño del archivo
+                        <span>{{ (document.file_size / 1024)|round(1) }} KB</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Tipo de archivo
+                        <span>{{ document.mime_type }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Fecha de subida
+                        <span>{{ document.created_at|datetime }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Subido por
+                        <span>{{ document.uploaded_by }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        {% if current_user.role in ['admin_general', 'admin_ph'] and (current_user.role == 'admin_general' or document.property.admin_id == current_user.id) %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Acciones</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('documents.edit', document_id=document.id) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-pencil"></i> Editar documento
+                    </a>
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        <i class="bi bi-trash"></i> Eliminar documento
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Delete Modal -->
+        <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalLabel">Confirmar eliminación</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>¿Estás seguro de que deseas eliminar el documento <strong>{{ document.title }}</strong>?</p>
+                        <p class="text-danger">Esta acción no se puede deshacer.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <form action="{{ url_for('documents.delete', document_id=document.id) }}" method="post">
+                            <button type="submit" class="btn btn-danger">Eliminar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

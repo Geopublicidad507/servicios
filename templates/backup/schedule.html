@@ -1,0 +1,443 @@
+{% extends "base.html" %}
+
+{% block title %}Programación de Backups - PH Control{% endblock %}
+
+{% block extra_head %}
+<style>
+    .schedule-card {
+        border-left: 4px solid #007bff;
+        transition: all 0.3s ease;
+    }
+    .schedule-card:hover {
+        border-left-color: #28a745;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .schedule-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin: 0 auto 1rem;
+    }
+    .time-input {
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="bi bi-calendar-event text-primary"></i>
+                        Programación de Backups
+                    </h1>
+                    <p class="text-muted mb-0">Configura los horarios automáticos de backup</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('backup.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver a Backups
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Schedule Status -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="alert-heading mb-2">
+                            <i class="bi bi-info-circle"></i> Estado del Programador
+                        </h5>
+                        <p class="mb-0">
+                            El sistema de backups automáticos está <strong>activo</strong> y funcionando correctamente.
+                            Los backups se ejecutan según la programación configurada.
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <span class="badge bg-success fs-6 p-2">
+                            <i class="bi bi-check-circle"></i> Activo
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule Configuration Form -->
+    <form method="POST">
+        <div class="row">
+            <!-- Daily Full Backup -->
+            <div class="col-lg-6 mb-4">
+                <div class="card schedule-card h-100">
+                    <div class="card-body text-center">
+                        <div class="schedule-icon bg-primary text-white">
+                            <i class="bi bi-archive"></i>
+                        </div>
+                        <h5 class="card-title">Backup Completo Diario</h5>
+                        <p class="text-muted mb-4">
+                            Backup completo de la base de datos y archivos subidos
+                        </p>
+                        
+                        <div class="mb-3">
+                            <label for="daily_backup_time" class="form-label">Hora de Ejecución</label>
+                            <input type="time" class="form-control time-input text-center" 
+                                   id="daily_backup_time" name="daily_backup_time" 
+                                   value="{{ config.daily_backup_time }}" required>
+                            <div class="form-text">
+                                Se recomienda programar durante horas de baja actividad
+                            </div>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="daily_backup_enabled" 
+                                   name="daily_backup_enabled" checked>
+                            <label class="form-check-label" for="daily_backup_enabled">
+                                Habilitar backup diario
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Backup Interval -->
+            <div class="col-lg-6 mb-4">
+                <div class="card schedule-card h-100">
+                    <div class="card-body text-center">
+                        <div class="schedule-icon bg-info text-white">
+                            <i class="bi bi-database"></i>
+                        </div>
+                        <h5 class="card-title">Backup de Base de Datos</h5>
+                        <p class="text-muted mb-4">
+                            Backup frecuente solo de la base de datos
+                        </p>
+                        
+                        <div class="mb-3">
+                            <label for="database_backup_interval" class="form-label">Intervalo (horas)</label>
+                            <select class="form-select text-center" id="database_backup_interval" 
+                                    name="database_backup_interval" required>
+                                <option value="1" {% if config.database_backup_interval == 1 %}selected{% endif %}>Cada hora</option>
+                                <option value="2" {% if config.database_backup_interval == 2 %}selected{% endif %}>Cada 2 horas</option>
+                                <option value="4" {% if config.database_backup_interval == 4 %}selected{% endif %}>Cada 4 horas</option>
+                                <option value="6" {% if config.database_backup_interval == 6 %}selected{% endif %}>Cada 6 horas</option>
+                                <option value="12" {% if config.database_backup_interval == 12 %}selected{% endif %}>Cada 12 horas</option>
+                            </select>
+                            <div class="form-text">
+                                Frecuencia de backup de la base de datos
+                            </div>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="database_backup_enabled" 
+                                   name="database_backup_enabled" checked>
+                            <label class="form-check-label" for="database_backup_enabled">
+                                Habilitar backup de BD
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Retention Policy -->
+            <div class="col-lg-6 mb-4">
+                <div class="card schedule-card h-100">
+                    <div class="card-body text-center">
+                        <div class="schedule-icon bg-warning text-white">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                        <h5 class="card-title">Política de Retención</h5>
+                        <p class="text-muted mb-4">
+                            Configuración de limpieza automática
+                        </p>
+                        
+                        <div class="mb-3">
+                            <label for="max_backups" class="form-label">Máximo de Backups</label>
+                            <input type="number" class="form-control text-center" 
+                                   id="max_backups" name="max_backups" 
+                                   value="{{ config.max_backups }}" min="5" max="100" required>
+                            <div class="form-text">
+                                Número máximo de backups a mantener
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="retention_days" class="form-label">Días de Retención</label>
+                            <select class="form-select text-center" id="retention_days" name="retention_days">
+                                <option value="30">30 días</option>
+                                <option value="60">60 días</option>
+                                <option value="90" selected>90 días</option>
+                                <option value="180">180 días</option>
+                                <option value="365">1 año</option>
+                            </select>
+                            <div class="form-text">
+                                Eliminar backups más antiguos que este período
+                            </div>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="auto_cleanup" 
+                                   name="auto_cleanup" {% if config.auto_cleanup %}checked{% endif %}>
+                            <label class="form-check-label" for="auto_cleanup">
+                                Limpieza automática
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Settings -->
+            <div class="col-lg-6 mb-4">
+                <div class="card schedule-card h-100">
+                    <div class="card-body text-center">
+                        <div class="schedule-icon bg-success text-white">
+                            <i class="bi bi-bell"></i>
+                        </div>
+                        <h5 class="card-title">Notificaciones</h5>
+                        <p class="text-muted mb-4">
+                            Alertas sobre el estado de los backups
+                        </p>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="notify_success" 
+                                   name="notify_success">
+                            <label class="form-check-label" for="notify_success">
+                                Notificar backups exitosos
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="notify_failure" 
+                                   name="notify_failure" checked>
+                            <label class="form-check-label" for="notify_failure">
+                                Notificar fallos de backup
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="notify_cleanup" 
+                                   name="notify_cleanup">
+                            <label class="form-check-label" for="notify_cleanup">
+                                Notificar limpieza de backups
+                            </label>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notification_email" class="form-label">Email de Notificaciones</label>
+                            <input type="email" class="form-control" id="notification_email" 
+                                   name="notification_email" placeholder="admin@ejemplo.com">
+                            <div class="form-text">
+                                Email donde recibir las notificaciones
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Settings -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-gear"></i> Configuración Avanzada
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="backup_compression" class="form-label">Nivel de Compresión</label>
+                                    <select class="form-select" id="backup_compression" name="backup_compression">
+                                        <option value="0">Sin compresión (más rápido)</option>
+                                        <option value="1">Compresión baja</option>
+                                        <option value="6" selected>Compresión media (recomendado)</option>
+                                        <option value="9">Compresión alta (más lento)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="backup_location" class="form-label">Ubicación de Backups</label>
+                                    <input type="text" class="form-control" id="backup_location" 
+                                           name="backup_location" value="backups/" readonly>
+                                    <div class="form-text">
+                                        Directorio donde se almacenan los backups
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="verify_backups" 
+                                           name="verify_backups" checked>
+                                    <label class="form-check-label" for="verify_backups">
+                                        Verificar integridad de backups
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="log_backup_activity" 
+                                           name="log_backup_activity" checked>
+                                    <label class="form-check-label" for="log_backup_activity">
+                                        Registrar actividad de backups
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Next Scheduled Backups -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-calendar-check"></i> Próximos Backups Programados
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-primary text-white rounded-circle p-2 me-3">
+                                        <i class="bi bi-archive"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Próximo Backup Completo</h6>
+                                        <small class="text-muted">Hoy a las {{ config.daily_backup_time }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="bg-info text-white rounded-circle p-2 me-3">
+                                        <i class="bi bi-database"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Próximo Backup de BD</h6>
+                                        <small class="text-muted">En {{ config.database_backup_interval }} horas</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <button type="submit" class="btn btn-primary btn-lg px-5">
+                            <i class="bi bi-check-circle"></i> Guardar Configuración
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-lg px-5 ms-3" 
+                                onclick="resetForm()">
+                            <i class="bi bi-arrow-clockwise"></i> Restablecer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function resetForm() {
+    if (confirm('¿Estás seguro de que quieres restablecer la configuración a los valores por defecto?')) {
+        document.getElementById('daily_backup_time').value = '02:00';
+        document.getElementById('database_backup_interval').value = '6';
+        document.getElementById('max_backups').value = '30';
+        document.getElementById('retention_days').value = '90';
+        document.getElementById('backup_compression').value = '6';
+        
+        // Reset checkboxes
+        document.getElementById('daily_backup_enabled').checked = true;
+        document.getElementById('database_backup_enabled').checked = true;
+        document.getElementById('auto_cleanup').checked = true;
+        document.getElementById('notify_failure').checked = true;
+        document.getElementById('verify_backups').checked = true;
+        document.getElementById('log_backup_activity').checked = true;
+        
+        // Clear other checkboxes
+        document.getElementById('notify_success').checked = false;
+        document.getElementById('notify_cleanup').checked = false;
+        
+        // Clear email
+        document.getElementById('notification_email').value = '';
+    }
+}
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const maxBackups = parseInt(document.getElementById('max_backups').value);
+    
+    if (maxBackups < 5) {
+        e.preventDefault();
+        alert('El número mínimo de backups debe ser 5.');
+        return false;
+    }
+    
+    if (maxBackups > 100) {
+        e.preventDefault();
+        alert('El número máximo de backups no puede exceder 100.');
+        return false;
+    }
+    
+    // Show loading state
+    const submitBtn = document.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...';
+    submitBtn.disabled = true;
+    
+    // Re-enable button after form submission (in case of validation errors)
+    setTimeout(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }, 3000);
+});
+
+// Real-time validation for max backups
+document.getElementById('max_backups').addEventListener('input', function() {
+    const value = parseInt(this.value);
+    const feedback = this.nextElementSibling;
+    
+    if (value < 5) {
+        this.classList.add('is-invalid');
+        feedback.textContent = 'Mínimo 5 backups requeridos';
+        feedback.classList.add('invalid-feedback');
+    } else if (value > 100) {
+        this.classList.add('is-invalid');
+        feedback.textContent = 'Máximo 100 backups permitidos';
+        feedback.classList.add('invalid-feedback');
+    } else {
+        this.classList.remove('is-invalid');
+        feedback.textContent = 'Número máximo de backups a mantener';
+        feedback.classList.remove('invalid-feedback');
+    }
+});
+</script>
+{% endblock %}

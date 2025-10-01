@@ -1,0 +1,411 @@
+{% extends "base.html" %}
+
+{% block title %}Logs de Auditoría - PH Control{% endblock %}
+
+{% block extra_head %}
+<style>
+    .filter-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .log-row {
+        transition: background-color 0.2s;
+    }
+    .log-row:hover {
+        background-color: #f8f9fa;
+    }
+    .log-success {
+        border-left: 3px solid #28a745;
+    }
+    .log-error {
+        border-left: 3px solid #dc3545;
+    }
+    .details-toggle {
+        cursor: pointer;
+        color: #007bff;
+    }
+    .details-toggle:hover {
+        color: #0056b3;
+    }
+    .log-details {
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+    }
+    .pagination-info {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="bi bi-list-ul text-primary"></i>
+                        Logs de Auditoría
+                    </h1>
+                    <p class="text-muted mb-0">Historial detallado de actividades del sistema</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('audit.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </a>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-download"></i> Exportar
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('audit.export') }}?format=csv&{{ request.query_string.decode() }}">
+                                <i class="bi bi-filetype-csv"></i> Exportar CSV
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('audit.export') }}?format=json&{{ request.query_string.decode() }}">
+                                <i class="bi bi-filetype-json"></i> Exportar JSON
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card filter-card">
+                <div class="card-body">
+                    <form method="GET" id="filterForm">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label for="user_id" class="form-label">Usuario</label>
+                                <select class="form-select" id="user_id" name="user_id">
+                                    <option value="">Todos los usuarios</option>
+                                    {% for user in users %}
+                                    <option value="{{ user.id }}" {% if filters.user_id == user.id %}selected{% endif %}>
+                                        {{ user.full_name }} ({{ user.email }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="action" class="form-label">Acción</label>
+                                <select class="form-select" id="action" name="action">
+                                    <option value="">Todas las acciones</option>
+                                    {% for action in actions %}
+                                    <option value="{{ action }}" {% if filters.action == action %}selected{% endif %}>
+                                        {{ action.replace('_', ' ').title() }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="resource_type" class="form-label">Recurso</label>
+                                <select class="form-select" id="resource_type" name="resource_type">
+                                    <option value="">Todos los recursos</option>
+                                    {% for resource_type in resource_types %}
+                                    <option value="{{ resource_type }}" {% if filters.resource_type == resource_type %}selected{% endif %}>
+                                        {{ resource_type.title() }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="success" class="form-label">Estado</label>
+                                <select class="form-select" id="success" name="success">
+                                    <option value="">Todos</option>
+                                    <option value="true" {% if filters.success == 'true' %}selected{% endif %}>Éxito</option>
+                                    <option value="false" {% if filters.success == 'false' %}selected{% endif %}>Error</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="per_page" class="form-label">Por página</label>
+                                <select class="form-select" id="per_page" name="per_page">
+                                    <option value="25" {% if request.args.get('per_page', '50') == '25' %}selected{% endif %}>25</option>
+                                    <option value="50" {% if request.args.get('per_page', '50') == '50' %}selected{% endif %}>50</option>
+                                    <option value="100" {% if request.args.get('per_page', '50') == '100' %}selected{% endif %}>100</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-3">
+                                <label for="start_date" class="form-label">Fecha desde</label>
+                                <input type="date" class="form-control" id="start_date" name="start_date" 
+                                       value="{{ filters.start_date or '' }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="end_date" class="form-label">Fecha hasta</label>
+                                <input type="date" class="form-control" id="end_date" name="end_date" 
+                                       value="{{ filters.end_date or '' }}">
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="bi bi-search"></i> Filtrar
+                                </button>
+                                <a href="{{ url_for('audit.logs') }}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle"></i> Limpiar
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Info -->
+    {% if logs.items %}
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="pagination-info">
+                Mostrando {{ logs.per_page * (logs.page - 1) + 1 }} - 
+                {{ logs.per_page * (logs.page - 1) + logs.items|length }} de {{ logs.total }} resultados
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Logs Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-0">
+                    {% if logs.items %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Fecha/Hora</th>
+                                    <th>Usuario</th>
+                                    <th>Acción</th>
+                                    <th>Recurso</th>
+                                    <th>IP</th>
+                                    <th>Estado</th>
+                                    <th>Detalles</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in logs.items %}
+                                <tr class="log-row {% if log.success %}log-success{% else %}log-error{% endif %}">
+                                    <td>
+                                        <div class="fw-medium">{{ log.timestamp.strftime('%d/%m/%Y') }}</div>
+                                        <small class="text-muted">{{ log.timestamp.strftime('%H:%M:%S') }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-light rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                                <i class="bi bi-person text-muted"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">{{ log.user_email or 'Sistema' }}</div>
+                                                {% if log.user_id %}
+                                                <small class="text-muted">ID: {{ log.user_id }}</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">
+                                            {{ log.action.replace('_', ' ').title() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if log.resource_type %}
+                                        <div>
+                                            <span class="fw-medium">{{ log.resource_type.title() }}</span>
+                                            {% if log.resource_id %}
+                                            <br><small class="text-muted">ID: {{ log.resource_id }}</small>
+                                            {% endif %}
+                                        </div>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if log.ip_address %}
+                                        <code class="small">{{ log.ip_address }}</code>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if log.success %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> Éxito
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-x-circle"></i> Error
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if log.details or log.error_message or log.user_agent %}
+                                        <i class="bi bi-info-circle details-toggle" 
+                                           data-bs-toggle="collapse" 
+                                           data-bs-target="#details-{{ log.id }}"
+                                           title="Ver detalles"></i>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% if log.details or log.error_message or log.user_agent %}
+                                <tr class="collapse" id="details-{{ log.id }}">
+                                    <td colspan="7">
+                                        <div class="log-details p-3">
+                                            {% if log.error_message %}
+                                            <div class="mb-2">
+                                                <strong class="text-danger">Error:</strong>
+                                                <div class="mt-1">{{ log.error_message }}</div>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            {% if log.details %}
+                                            <div class="mb-2">
+                                                <strong>Detalles:</strong>
+                                                <pre class="mt-1 mb-0">{{ log.details | tojson(indent=2) }}</pre>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            {% if log.user_agent %}
+                                            <div>
+                                                <strong>User Agent:</strong>
+                                                <div class="mt-1 small">{{ log.user_agent }}</div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if logs.pages > 1 %}
+                    <div class="card-footer">
+                        <nav aria-label="Paginación de logs">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if logs.has_prev %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('audit.logs', page=logs.prev_num, **request.args) }}">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+
+                                {% for page_num in logs.iter_pages() %}
+                                {% if page_num %}
+                                {% if page_num != logs.page %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('audit.logs', page=page_num, **request.args) }}">
+                                        {{ page_num }}
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                                {% endif %}
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">…</span>
+                                </li>
+                                {% endif %}
+                                {% endfor %}
+
+                                {% if logs.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('audit.logs', page=logs.next_num, **request.args) }}">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                    {% endif %}
+
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-search display-1 text-muted"></i>
+                        <h4 class="text-muted mt-3">No se encontraron logs</h4>
+                        <p class="text-muted">Intenta ajustar los filtros de búsqueda</p>
+                        <a href="{{ url_for('audit.logs') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-clockwise"></i> Limpiar Filtros
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-submit form when filters change
+document.querySelectorAll('#filterForm select').forEach(select => {
+    select.addEventListener('change', function() {
+        // Don't auto-submit for per_page changes
+        if (this.id !== 'per_page') {
+            document.getElementById('filterForm').submit();
+        }
+    });
+});
+
+// Date range validation
+document.getElementById('start_date').addEventListener('change', function() {
+    const endDate = document.getElementById('end_date');
+    if (this.value && endDate.value && this.value > endDate.value) {
+        endDate.value = this.value;
+    }
+});
+
+document.getElementById('end_date').addEventListener('change', function() {
+    const startDate = document.getElementById('start_date');
+    if (this.value && startDate.value && this.value < startDate.value) {
+        startDate.value = this.value;
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Ctrl/Cmd + F to focus on filters
+    if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        document.getElementById('user_id').focus();
+    }
+    
+    // Escape to clear filters
+    if (e.key === 'Escape') {
+        window.location.href = '{{ url_for("audit.logs") }}';
+    }
+});
+
+// Highlight search terms
+function highlightSearchTerms() {
+    const action = '{{ filters.action or "" }}';
+    if (action) {
+        document.querySelectorAll('.badge').forEach(badge => {
+            if (badge.textContent.toLowerCase().includes(action.toLowerCase())) {
+                badge.style.backgroundColor = '#fff3cd';
+                badge.style.color = '#856404';
+            }
+        });
+    }
+}
+
+// Call highlight function when page loads
+document.addEventListener('DOMContentLoaded', highlightSearchTerms);
+</script>
+{% endblock %}

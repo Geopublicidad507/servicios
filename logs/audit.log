@@ -1,0 +1,11 @@
+2025-06-19 03:45:08,332 - audit - INFO - Action: login_attempt | User: rubio@gmail.com
+2025-06-19 04:00:26,959 - audit - INFO - Action: logout | User: rubio@gmail.com | Resource: user#49
+2025-06-19 04:00:39,300 - audit - INFO - Action: login_attempt | User: rubio@gmail.com
+2025-06-19 04:06:29,332 - audit - INFO - Action: logout | User: rubio@gmail.com | Resource: user#49
+2025-06-19 04:06:31,897 - audit - INFO - Action: login_attempt | User: rubio@gmail.com
+2025-06-19 04:14:24,104 - audit - INFO - Action: logout | User: rubio@gmail.com | Resource: user#49
+2025-06-19 04:14:53,075 - audit - INFO - Action: login_attempt | User: admin@phcontrol.com
+2025-06-19 13:43:31,081 - audit - INFO - Action: login_attempt | User: rubio@gmail.com
+2025-06-19 13:43:57,587 - audit - INFO - Action: logout | User: rubio@gmail.com | Resource: user#49
+2025-06-19 13:44:21,755 - audit - INFO - Action: login_attempt | User: admin@phcontrol.com
+2025-06-19 14:44:50,808 - audit - INFO - Action: logout | User: admin@phcontrol.com | Resource: user#45

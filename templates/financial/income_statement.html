@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Estado de Resultados - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Estado de Resultados</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('financial.reports') }}" class="btn btn-sm btn-outline-secondary me-2">
+            <i class="bi bi-arrow-left"></i> Volver a reportes
+        </a>
+        <a href="{{ url_for('financial.income_statement', property_id=request.args.get('property_id'), year=request.args.get('year'), month=request.args.get('month'), format='pdf') }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">Estado de Resultados - {{ period }}</h5>
+    </div>
+    <div class="card-body">
+        {% if properties %}
+        <div class="mb-3">
+            <strong>Propiedades:</strong> {{ ', '.join(properties) }}
+        </div>
+        {% endif %}
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">Ingresos</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Tipo de Ingreso</th>
+                                    <th class="text-end">Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if income_data %}
+                                    {% for income_type, amount in income_data.items() %}
+                                    <tr>
+                                        <td>{{ income_type|replace('_', ' ')|title }}</td>
+                                        <td class="text-end">${{ amount|round(2) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="2" class="text-center">No hay datos de ingresos</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-success">
+                                    <th>TOTAL INGRESOS</th>
+                                    <th class="text-end">${{ total_income|round(2) }}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="card-title mb-0">Gastos</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Categoría</th>
+                                    <th class="text-end">Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if expense_data %}
+                                    {% for category, amount in expense_data.items() %}
+                                    <tr>
+                                        <td>{{ category|replace('_', ' ')|title }}</td>
+                                        <td class="text-end">${{ amount|round(2) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="2" class="text-center">No hay datos de gastos</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-danger">
+                                    <th>TOTAL GASTOS</th>
+                                    <th class="text-end">${{ total_expenses|round(2) }}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header {{ 'bg-success' if net_income >= 0 else 'bg-danger' }} text-white">
+                <h5 class="card-title mb-0">Resultado</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>Total Ingresos:</h4>
+                        <h2 class="text-success">${{ total_income|round(2) }}</h2>
+                    </div>
+                    <div class="col-md-6">
+                        <h4>Total Gastos:</h4>
+                        <h2 class="text-danger">${{ total_expenses|round(2) }}</h2>
+                    </div>
+                </div>
+                <hr>
+                <div class="text-center">
+                    <h3>Utilidad Neta:</h3>
+                    <h1 class="{{ 'text-success' if net_income >= 0 else 'text-danger' }}">
+                        ${{ net_income|round(2) }}
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

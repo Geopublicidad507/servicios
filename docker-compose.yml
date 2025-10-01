@@ -1,0 +1,56 @@
+services:
+  ph-web:
+    build: .
+    container_name: ph-control-web
+    restart: unless-stopped
+    ports:
+      - "5003:5003"
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://phcontrol:phcontrol123@ph-database:5432/phcontrol_db
+      - SECRET_KEY=dev-secret-key-change-in-production-ph-control-2024
+      - PORT=5003
+      - DEBUG=True
+      # Configuración de inicialización
+      - CREATE_SAMPLE_DATA=true
+      - SKIP_INIT=false
+    depends_on:
+      - ph-database
+    volumes:
+      - .:/app
+      - ph_uploads:/app/uploads
+    networks:
+      - ph-network
+
+  ph-database:
+    image: postgres:15
+    container_name: ph-control-database
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=phcontrol_db
+      - POSTGRES_USER=phcontrol
+      - POSTGRES_PASSWORD=phcontrol123
+    volumes:
+      - ph_postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5435:5432"
+    networks:
+      - ph-network
+
+  ph-redis:
+    image: redis:7-alpine
+    container_name: ph-control-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    networks:
+      - ph-network
+
+volumes:
+  ph_postgres_data:
+  ph_uploads:
+
+networks:
+  ph-network:
+    driver: bridge

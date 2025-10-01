@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Tareas de Mantenimiento - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Tareas de Mantenimiento</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        {% if current_user.role in ['admin_general', 'admin_ph'] %}
+        <a href="{{ url_for('maintenance.create_task') }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle"></i> Nueva Tarea
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" action="{{ url_for('maintenance.tasks') }}" class="row g-3">
+            <div class="col-md-3">
+                <label for="property_id" class="form-label">Propiedad</label>
+                <select name="property_id" id="property_id" class="form-select">
+                    <option value="">Todas las propiedades</option>
+                    {% for property in properties %}
+                    <option value="{{ property.id }}" {% if filters.property_id == property.id %}selected{% endif %}>
+                        {{ property.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="status" class="form-label">Estado</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="pending" {% if filters.status == 'pending' %}selected{% endif %}>Pendiente</option>
+                    <option value="in_progress" {% if filters.status == 'in_progress' %}selected{% endif %}>En Progreso</option>
+                    <option value="completed" {% if filters.status == 'completed' %}selected{% endif %}>Completada</option>
+                    <option value="cancelled" {% if filters.status == 'cancelled' %}selected{% endif %}>Cancelada</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="task_type" class="form-label">Tipo</label>
+                <select name="task_type" id="task_type" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="preventive" {% if filters.task_type == 'preventive' %}selected{% endif %}>Preventivo</option>
+                    <option value="corrective" {% if filters.task_type == 'corrective' %}selected{% endif %}>Correctivo</option>
+                    <option value="emergency" {% if filters.task_type == 'emergency' %}selected{% endif %}>Emergencia</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="priority" class="form-label">Prioridad</label>
+                <select name="priority" id="priority" class="form-select">
+                    <option value="">Todas</option>
+                    <option value="low" {% if filters.priority == 'low' %}selected{% endif %}>Baja</option>
+                    <option value="medium" {% if filters.priority == 'medium' %}selected{% endif %}>Media</option>
+                    <option value="high" {% if filters.priority == 'high' %}selected{% endif %}>Alta</option>
+                    <option value="urgent" {% if filters.priority == 'urgent' %}selected{% endif %}>Urgente</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-filter"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tasks List -->
+<div class="card">
+    <div class="card-body">
+        {% if tasks.items %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Propiedad</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Prioridad</th>
+                        <th>Fecha Programada</th>
+                        <th>Asignado a</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks.items %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('maintenance.view_task', task_id=task.id) }}">
+                                {{ task.title }}
+                            </a>
+                        </td>
+                        <td>{{ task.property.name }}</td>
+                        <td>{{ task.task_type|replace('_', ' ')|title }}</td>
+                        <td>
+                            {% if task.status == 'pending' %}
+                            <span class="badge bg-warning">Pendiente</span>
+                            {% elif task.status == 'in_progress' %}
+                            <span class="badge bg-info">En Progreso</span>
+                            {% elif task.status == 'completed' %}
+                            <span class="badge bg-success">Completada</span>
+                            {% elif task.status == 'cancelled' %}
+                            <span class="badge bg-secondary">Cancelada</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if task.priority == 'low' %}
+                            <span class="badge bg-info">Baja</span>
+                            {% elif task.priority == 'medium' %}
+                            <span class="badge bg-primary">Media</span>
+                            {% elif task.priority == 'high' %}
+                            <span class="badge bg-warning">Alta</span>
+                            {% elif task.priority == 'urgent' %}
+                            <span class="badge bg-danger">Urgente</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ task.scheduled_date or 'No programada' }}</td>
+                        <td>{{ task.assigned_to or 'Sin asignar' }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('maintenance.view_task', task_id=task.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if current_user.role in ['admin_general', 'admin_ph'] and (current_user.role == 'admin_general' or task.property.admin_id == current_user.id) %}
+                                <a href="{{ url_for('maintenance.edit_task', task_id=task.id) }}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if tasks.pages > 1 %}
+        <nav aria-label="Paginación de tareas">
+            <ul class="pagination justify-content-center">
+                {% if tasks.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('maintenance.tasks', page=tasks.prev_num, property_id=filters.property_id, status=filters.status, task_type=filters.task_type, priority=filters.priority) }}">
+                        Anterior
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Anterior</span>
+                </li>
+                {% endif %}
+                
+                {% for page_num in tasks.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        {% if page_num == tasks.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('maintenance.tasks', page=page_num, property_id=filters.property_id, status=filters.status, task_type=filters.task_type, priority=filters.priority) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if tasks.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('maintenance.tasks', page=tasks.next_num, property_id=filters.property_id, status=filters.status, task_type=filters.task_type, priority=filters.priority) }}">
+                        Siguiente
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Siguiente</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-tools display-1 text-muted"></i>
+            <p class="lead mt-3">No se encontraron tareas de mantenimiento</p>
+            {% if current_user.role in ['admin_general', 'admin_ph'] %}
+            <a href="{{ url_for('maintenance.create_task') }}" class="btn btn-primary mt-2">
+                <i class="bi bi-plus-circle"></i> Crear primera tarea
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

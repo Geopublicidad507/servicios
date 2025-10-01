@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes de Seguridad - PH Control{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Reportes de Seguridad</h1>
+        <div>
+            <button class="btn btn-success btn-sm" onclick="exportReport()">
+                <i class="fas fa-download fa-sm text-white-50"></i> Exportar PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Filtros de Reporte</h6>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row">
+                <div class="col-md-4">
+                    <label for="date_from">Fecha Desde:</label>
+                    <input type="date" class="form-control" id="date_from" name="date_from" 
+                           value="{{ date_from }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="date_to">Fecha Hasta:</label>
+                    <input type="date" class="form-control" id="date_to" name="date_to" 
+                           value="{{ date_to }}">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search mr-2"></i> Generar Reporte
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Statistics Row -->
+    <div class="row">
+        <!-- Total Visitors -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Visitantes
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ total_visitors }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Duration -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Duración Promedio
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ avg_duration }} hrs
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Peak Day -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Día con Más Visitas
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% set max_day = daily_counts|max(attribute='count') %}
+                                {{ max_day.count if max_day else 0 }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Most Visited Unit -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Unidad Más Visitada
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if unit_stats %}
+                                    {{ unit_stats[0].unit_visited }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-home fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+        <!-- Daily Visitors Chart -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Visitantes por Día</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="dailyVisitorsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Most Visited Units -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Unidades Más Visitadas</h6>
+                </div>
+                <div class="card-body">
+                    {% if unit_stats %}
+                        {% for unit in unit_stats %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span class="font-weight-bold">{{ unit.unit_visited }}</span>
+                                <span class="text-gray-600">{{ unit.visit_count }} visitas</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                {% set max_visits = unit_stats[0].visit_count %}
+                                {% set percentage = (unit.visit_count / max_visits * 100) if max_visits > 0 else 0 %}
+                                <div class="progress-bar bg-primary" style="width: {{ percentage }}%"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-gray-500 text-center">No hay datos de visitas en el período seleccionado.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Resumen Diario</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Día</th>
+                            <th>Visitantes</th>
+                            <th>Porcentaje del Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for day in daily_counts %}
+                        <tr>
+                            <td>{{ day.date }}</td>
+                            <td>{{ day.day }}</td>
+                            <td>{{ day.count }}</td>
+                            <td>
+                                {% set percentage = (day.count / total_visitors * 100) if total_visitors > 0 else 0 %}
+                                {{ "%.1f"|format(percentage) }}%
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Daily Visitors Chart
+const ctx = document.getElementById('dailyVisitorsChart').getContext('2d');
+const dailyData = {{ daily_counts|tojson }};
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: dailyData.map(d => d.date),
+        datasets: [{
+            label: 'Visitantes',
+            data: dailyData.map(d => d.count),
+            borderColor: 'rgb(78, 115, 223)',
+            backgroundColor: 'rgba(78, 115, 223, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+
+function exportReport() {
+    const params = new URLSearchParams(window.location.search);
+    params.set('format', 'pdf');
+    
+    const url = `${window.location.pathname}?${params.toString()}`;
+    window.open(url, '_blank');
+}
+</script>
+{% endblock %}

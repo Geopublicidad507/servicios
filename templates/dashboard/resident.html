@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Dashboard - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Mi Dashboard</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('communication.create_ticket') }}" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-circle"></i> Crear Ticket
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if not units %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle"></i>
+    <strong>Atención:</strong> No tienes unidades asignadas. 
+    Contacta al administrador para que te asigne a una unidad y puedas acceder a todas las funcionalidades.
+</div>
+{% else %}
+
+<!-- KPI Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Mis Unidades
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_units }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-house fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Pagado Este Mes
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            ${{ "%.2f"|format(monthly_total) }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-cash-stack fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Pagos Pendientes
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_payments|length }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-exclamation-triangle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Notificaciones
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ notifications|length }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-bell fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row">
+    <!-- Payment History Chart -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Historial de Pagos (Últimos 6 Meses)</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="paymentChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Notificaciones Recientes</h6>
+                <a href="{{ url_for('communication.notifications') }}" class="btn btn-sm btn-outline-primary">
+                    Ver Todas
+                </a>
+            </div>
+            <div class="card-body">
+                {% if notifications %}
+                <div class="list-group list-group-flush">
+                    {% for notification in notifications %}
+                    <div class="list-group-item border-0 px-0">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ notification.title }}</h6>
+                            <small>{{ notification.created_at.strftime('%d/%m') }}</small>
+                        </div>
+                        <p class="mb-1">{{ notification.message[:100] }}{% if notification.message|length > 100 %}...{% endif %}</p>
+                        <small class="text-muted">
+                            <span class="badge bg-{{ 'primary' if notification.notification_type == 'info' else notification.notification_type }}">
+                                {{ notification.notification_type }}
+                            </span>
+                        </small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No hay notificaciones nuevas</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- My Units -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Mis Unidades</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for unit in units %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card border-primary">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ unit.unit_identifier }}</h6>
+                        <p class="card-text">
+                            <strong>Propiedad:</strong> {{ unit.property.name }}<br>
+                            <strong>Tipo:</strong> {{ unit.unit_type.title() }}<br>
+                            <strong>Cuota Mensual:</strong> ${{ "%.2f"|format(unit.monthly_fee) }}<br>
+                            {% if unit.area %}
+                            <strong>Área:</strong> {{ unit.area }} m²<br>
+                            {% endif %}
+                        </p>
+                        <div class="d-flex justify-content-between">
+                            <span class="badge bg-{{ 'success' if unit.is_occupied else 'secondary' }}">
+                                {{ 'Ocupada' if unit.is_occupied else 'Desocupada' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Pending Payments -->
+{% if pending_payments %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-warning">Pagos Pendientes</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Unidad</th>
+                        <th>Tipo</th>
+                        <th>Monto</th>
+                        <th>Fecha Vencimiento</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in pending_payments %}
+                    <tr>
+                        <td>{{ payment.unit.unit_identifier }}</td>
+                        <td>{{ payment.payment_type.replace('_', ' ').title() }}</td>
+                        <td>${{ "%.2f"|format(payment.amount) }}</td>
+                        <td>
+                            {% if payment.due_date %}
+                            {{ payment.due_date.strftime('%d/%m/%Y') }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'danger' if payment.status == 'overdue' else 'warning' }}">
+                                {{ payment.status.replace('_', ' ').title() }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            Para realizar pagos, contacta al administrador de tu propiedad.
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Acciones Rápidas</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3 mb-2">
+                <a href="{{ url_for('communication.create_ticket') }}" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-plus-circle"></i><br>
+                    Crear Ticket
+                </a>
+            </div>
+            <div class="col-md-3 mb-2">
+                <a href="{{ url_for('documents.index') }}" class="btn btn-outline-info w-100">
+                    <i class="bi bi-folder"></i><br>
+                    Ver Documentos
+                </a>
+            </div>
+            <div class="col-md-3 mb-2">
+                <a href="{{ url_for('communication.announcements') }}" class="btn btn-outline-success w-100">
+                    <i class="bi bi-megaphone"></i><br>
+                    Ver Avisos
+                </a>
+            </div>
+            <div class="col-md-3 mb-2">
+                <a href="{{ url_for('auth.profile') }}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-person"></i><br>
+                    Mi Perfil
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Payment History Chart
+const ctx = document.getElementById('paymentChart').getContext('2d');
+const paymentChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: {{ payment_history|map(attribute='month')|list|tojson }},
+        datasets: [{
+            label: 'Monto Pagado',
+            data: {{ payment_history|map(attribute='total')|list|tojson }},
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Mark notification as read
+function markNotificationRead(notificationId) {
+    fetch(`/dashboard/api/notifications/mark-read/${notificationId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update UI to show notification as read
+            console.log('Notification marked as read');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+</script>
+{% endblock %}

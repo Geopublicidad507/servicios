@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Propiedades - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Gestión de Propiedades</h1>
+        <a href="{{ url_for('admin.create_property') }}" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus fa-sm text-white-50"></i> Nueva Propiedad
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Filtros</h6>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row">
+                <div class="col-md-4">
+                    <input type="text" class="form-control" name="search" 
+                           placeholder="Buscar por nombre, código o dirección..." 
+                           value="{{ filters.search or '' }}">
+                </div>
+                <div class="col-md-3">
+                    <select class="form-control" name="status">
+                        <option value="">Todos los estados</option>
+                        <option value="active" {{ 'selected' if filters.status == 'active' }}>Activas</option>
+                        <option value="inactive" {{ 'selected' if filters.status == 'inactive' }}>Inactivas</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search mr-2"></i> Buscar
+                    </button>
+                    <a href="{{ url_for('admin.properties') }}" class="btn btn-secondary">
+                        <i class="fas fa-times mr-2"></i> Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Properties List -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                Lista de Propiedades ({{ properties.total }} total)
+            </h6>
+        </div>
+        <div class="card-body">
+            {% if properties.items %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Dirección</th>
+                                <th>Unidades</th>
+                                <th>Administrador</th>
+                                <th>Estado</th>
+                                <th>Fecha Creación</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for property in properties.items %}
+                            <tr>
+                                <td>
+                                    <strong>{{ property.code }}</strong>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>{{ property.name }}</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            Cuota: {{ property.monthly_fee|currency }}
+                                        </small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <small>{{ property.address }}</small>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge badge-info">{{ property.total_units }}</span>
+                                </td>
+                                <td>
+                                    {% if property.admin %}
+                                        <div>
+                                            <strong>{{ property.admin.full_name }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ property.admin.email }}</small>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">Sin asignar</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if property.is_active %}
+                                        <span class="badge badge-success">Activa</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">Inactiva</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>{{ property.created_at|date }}</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('admin.view_property', property_id=property.id) }}" 
+                                           class="btn btn-info btn-sm" title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button class="btn btn-warning btn-sm" 
+                                                onclick="editProperty({{ property.id }})" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-{{ 'secondary' if property.is_active else 'success' }} btn-sm" 
+                                                onclick="togglePropertyStatus({{ property.id }})" 
+                                                title="{{ 'Desactivar' if property.is_active else 'Activar' }}">
+                                            <i class="fas fa-{{ 'pause' if property.is_active else 'play' }}"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if properties.pages > 1 %}
+                <nav>
+                    <ul class="pagination justify-content-center">
+                        {% if properties.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin.properties', page=properties.prev_num, **filters) }}">
+                                    Anterior
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for page_num in properties.iter_pages() %}
+                            {% if page_num %}
+                                {% if page_num != properties.page %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('admin.properties', page=page_num, **filters) }}">
+                                            {{ page_num }}
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ page_num }}</span>
+                                    </li>
+                                {% endif %}
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if properties.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin.properties', page=properties.next_num, **filters) }}">
+                                    Siguiente
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-building fa-3x text-gray-300 mb-3"></i>
+                    <h5 class="text-gray-500">No se encontraron propiedades</h5>
+                    <p class="text-gray-400">
+                        {% if filters.search or filters.status %}
+                            Intenta modificar los filtros de búsqueda.
+                        {% else %}
+                            Comienza creando tu primera propiedad.
+                        {% endif %}
+                    </p>
+                    <a href="{{ url_for('admin.create_property') }}" class="btn btn-primary">
+                        <i class="fas fa-plus mr-2"></i> Nueva Propiedad
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Edit Property Modal -->
+<div class="modal fade" id="editPropertyModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Propiedad</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    La edición completa de propiedades estará disponible próximamente.
+                    Por ahora puedes ver los detalles y cambiar el estado.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function editProperty(propertyId) {
+    $('#editPropertyModal').modal('show');
+    // Future implementation for property editing
+}
+
+function togglePropertyStatus(propertyId) {
+    if (confirm('¿Estás seguro de que deseas cambiar el estado de esta propiedad?')) {
+        fetch(`/admin/api/properties/${propertyId}/toggle-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('success', data.message);
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                showAlert('error', data.message);
+            }
+        })
+        .catch(error => {
+            showAlert('error', 'Error al actualizar el estado de la propiedad');
+        });
+    }
+}
+
+function showAlert(type, message) {
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    container.insertAdjacentHTML('afterbegin', alertHtml);
+    
+    setTimeout(() => {
+        const alert = container.querySelector('.alert');
+        if (alert) {
+            alert.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

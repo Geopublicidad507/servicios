@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}Tarea: {{ task.title }} - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Tarea de Mantenimiento</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('maintenance.tasks') }}" class="btn btn-sm btn-outline-secondary me-2">
+            <i class="bi bi-arrow-left"></i> Volver a tareas
+        </a>
+        {% if current_user.role in ['admin_general', 'admin_ph'] and (current_user.role == 'admin_general' or task.property.admin_id == current_user.id) %}
+        <a href="{{ url_for('maintenance.edit_task', task_id=task.id) }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-pencil"></i> Editar
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">{{ task.title }}</h5>
+                <div>
+                    {% if task.status == 'pending' %}
+                    <span class="badge bg-warning">Pendiente</span>
+                    {% elif task.status == 'in_progress' %}
+                    <span class="badge bg-info">En Progreso</span>
+                    {% elif task.status == 'completed' %}
+                    <span class="badge bg-success">Completada</span>
+                    {% elif task.status == 'cancelled' %}
+                    <span class="badge bg-secondary">Cancelada</span>
+                    {% endif %}
+                    
+                    {% if task.priority == 'low' %}
+                    <span class="badge bg-info">Prioridad: Baja</span>
+                    {% elif task.priority == 'medium' %}
+                    <span class="badge bg-primary">Prioridad: Media</span>
+                    {% elif task.priority == 'high' %}
+                    <span class="badge bg-warning">Prioridad: Alta</span>
+                    {% elif task.priority == 'urgent' %}
+                    <span class="badge bg-danger">Prioridad: Urgente</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h6>Descripción</h6>
+                    <p class="card-text">{{ task.description or 'Sin descripción' }}</p>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6>Propiedad</h6>
+                        <p>{{ task.property.name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Tipo de Tarea</h6>
+                        <p>{{ task.task_type|replace('_', ' ')|title }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6>Fecha Programada</h6>
+                        <p>{{ task.scheduled_date or 'No programada' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Fecha de Finalización</h6>
+                        <p>{{ task.completed_date or 'No completada' }}</p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6>Asignado a</h6>
+                        <p>{{ task.assigned_to or 'Sin asignar' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Estado</h6>
+                        <p>
+                            {% if task.status == 'pending' %}
+                            <span class="badge bg-warning">Pendiente</span>
+                            {% elif task.status == 'in_progress' %}
+                            <span class="badge bg-info">En Progreso</span>
+                            {% elif task.status == 'completed' %}
+                            <span class="badge bg-success">Completada</span>
+                            {% elif task.status == 'cancelled' %}
+                            <span class="badge bg-secondary">Cancelada</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                {% if task.notes %}
+                <div class="mb-3">
+                    <h6>Notas</h6>
+                    <p>{{ task.notes }}</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer text-muted">
+                <div class="row">
+                    <div class="col-md-6">
+                        Creado: {{ task.created_at|datetime }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Información de Costos</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Costo Estimado
+                        <span>${{ task.estimated_cost or '0.00' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Costo Real
+                        <span>${{ task.actual_cost or '0.00' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Diferencia
+                        <span class="{{ 'text-success' if (task.actual_cost or 0) <= (task.estimated_cost or 0) else 'text-danger' }}">
+                            ${{ ((task.estimated_cost or 0) - (task.actual_cost or 0))|abs }}
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        {% if current_user.role in ['admin_general', 'admin_ph'] and (current_user.role == 'admin_general' or task.property.admin_id == current_user.id) %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Acciones</h5>
+            </div>
+            <div class="card-body">
+                <form id="status-form" class="mb-3">
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Cambiar Estado</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="pending" {% if task.status == 'pending' %}selected{% endif %}>Pendiente</option>
+                            <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>En Progreso</option>
+                            <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Completada</option>
+                            <option value="cancelled" {% if task.status == 'cancelled' %}selected{% endif %}>Cancelada</option>
+                        </select>
+                    </div>
+                    <div class="d-grid">
+                        <button type="button" id="update-status" class="btn btn-primary">Actualizar Estado</button>
+                    </div>
+                </form>
+                
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('maintenance.edit_task', task_id=task.id) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-pencil"></i> Editar Tarea
+                    </a>
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        <i class="bi bi-trash"></i> Eliminar Tarea
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Delete Modal -->
+        <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalLabel">Confirmar eliminación</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>¿Estás seguro de que deseas eliminar la tarea <strong>{{ task.title }}</strong>?</p>
+                        <p class="text-danger">Esta acción no se puede deshacer.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <form action="{{ url_for('maintenance.delete_task', task_id=task.id) }}" method="post">
+                            <button type="submit" class="btn btn-danger">Eliminar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if current_user.role in ['admin_general', 'admin_ph'] and (current_user.role == 'admin_general' or task.property.admin_id == current_user.id) %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const updateStatusBtn = document.getElementById('update-status');
+        const statusSelect = document.getElementById('status');
+        
+        updateStatusBtn.addEventListener('click', function() {
+            const status = statusSelect.value;
+            
+            fetch('{{ url_for("maintenance.update_task_status", task_id=task.id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: status })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload page to show updated status
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al actualizar el estado');
+            });
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

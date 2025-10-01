@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Asamblea - PH Control{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Editar Asamblea</h1>
+        <a href="{{ url_for('legal.view_assembly', assembly_id=assembly.id) }}" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Información de la Asamblea</h6>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="title">Título *</label>
+                            <input type="text" class="form-control" id="title" name="title" 
+                                   value="{{ assembly.title }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="assembly_type">Tipo de Asamblea *</label>
+                            <select class="form-control" id="assembly_type" name="assembly_type" required>
+                                <option value="ordinary" {{ 'selected' if assembly.assembly_type == 'ordinary' }}>Ordinaria</option>
+                                <option value="extraordinary" {{ 'selected' if assembly.assembly_type == 'extraordinary' }}>Extraordinaria</option>
+                                <option value="emergency" {{ 'selected' if assembly.assembly_type == 'emergency' }}>Emergencia</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Descripción</label>
+                    <textarea class="form-control" id="description" name="description" rows="3">{{ assembly.description or '' }}</textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="scheduled_date">Fecha *</label>
+                            <input type="date" class="form-control" id="scheduled_date" name="scheduled_date" 
+                                   value="{{ assembly.scheduled_date.strftime('%Y-%m-%d') }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="scheduled_time">Hora *</label>
+                            <input type="time" class="form-control" id="scheduled_time" name="scheduled_time" 
+                                   value="{{ assembly.scheduled_date.strftime('%H:%M') }}" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="location">Ubicación</label>
+                            <input type="text" class="form-control" id="location" name="location" 
+                                   value="{{ assembly.location or '' }}" placeholder="Ej: Salón comunal">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="status">Estado</label>
+                            <select class="form-control" id="status" name="status">
+                                <option value="scheduled" {{ 'selected' if assembly.status == 'scheduled' }}>Programada</option>
+                                <option value="in_progress" {{ 'selected' if assembly.status == 'in_progress' }}>En Progreso</option>
+                                <option value="completed" {{ 'selected' if assembly.status == 'completed' }}>Completada</option>
+                                <option value="cancelled" {{ 'selected' if assembly.status == 'cancelled' }}>Cancelada</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="quorum_required">Quórum Requerido (%)</label>
+                            <input type="number" class="form-control" id="quorum_required" name="quorum_required" 
+                                   value="{{ assembly.quorum_required }}" min="1" max="100">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="quorum_achieved">Quórum Logrado (%)</label>
+                            <input type="number" class="form-control" id="quorum_achieved" name="quorum_achieved" 
+                                   value="{{ assembly.quorum_achieved or '' }}" min="0" max="100">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="agenda">Orden del Día</label>
+                    <textarea class="form-control" id="agenda" name="agenda" rows="5">{{ assembly.agenda or '' }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="minutes">Acta de la Asamblea</label>
+                    <textarea class="form-control" id="minutes" name="minutes" rows="8" 
+                              placeholder="Registre aquí el desarrollo de la asamblea, decisiones tomadas, votaciones, etc.">{{ assembly.minutes or '' }}</textarea>
+                    <small class="form-text text-muted">
+                        Complete este campo después de realizar la asamblea para generar el acta oficial.
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-2"></i> Guardar Cambios
+                    </button>
+                    <a href="{{ url_for('legal.view_assembly', assembly_id=assembly.id) }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Backups - PH Control{% endblock %}
+
+{% block extra_head %}
+<style>
+    .backup-card {
+        transition: transform 0.2s;
+    }
+    .backup-card:hover {
+        transform: translateY(-2px);
+    }
+    .backup-status {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+    }
+    .backup-item {
+        border-left: 4px solid #007bff;
+        transition: all 0.3s ease;
+    }
+    .backup-item:hover {
+        border-left-color: #28a745;
+        background-color: #f8f9fa;
+    }
+    .file-size {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    .backup-actions .btn {
+        margin: 0 2px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="bi bi-shield-check text-primary"></i>
+                        Gestión de Backups
+                    </h1>
+                    <p class="text-muted mb-0">Administra los backups del sistema</p>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBackupModal">
+                        <i class="bi bi-plus-circle"></i> Crear Backup
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#uploadBackupModal">
+                        <i class="bi bi-upload"></i> Subir Backup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Cards -->
+    {% if status %}
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card backup-status h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-archive display-4 mb-3"></i>
+                    <h4 class="mb-1">{{ status.total_backups }}</h4>
+                    <p class="mb-0">Total Backups</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card backup-status h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-clock-history display-4 mb-3"></i>
+                    <h6 class="mb-1">
+                        {% if status.last_backup %}
+                            {{ status.last_backup.strftime('%d/%m/%Y') }}
+                        {% else %}
+                            Nunca
+                        {% endif %}
+                    </h6>
+                    <p class="mb-0">Último Backup</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card backup-status h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-hdd display-4 mb-3"></i>
+                    <h6 class="mb-1">{{ "%.1f"|format(status.backup_dir_size / 1024 / 1024) }} MB</h6>
+                    <p class="mb-0">Espacio Usado</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card backup-status h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-gear display-4 mb-3"></i>
+                    <h6 class="mb-1">{{ status.max_backups }}</h6>
+                    <p class="mb-0">Máx. Backups</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Actions Row -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-tools"></i> Acciones Rápidas
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <form method="POST" action="{{ url_for('backup.cleanup') }}" class="d-inline">
+                                <button type="submit" class="btn btn-warning me-2" onclick="return confirm('¿Estás seguro de que quieres limpiar los backups antiguos?')">
+                                    <i class="bi bi-trash"></i> Limpiar Antiguos
+                                </button>
+                            </form>
+                            <a href="{{ url_for('backup.schedule') }}" class="btn btn-info">
+                                <i class="bi bi-calendar-event"></i> Programación
+                            </a>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <button type="button" class="btn btn-outline-primary" onclick="refreshStatus()">
+                                <i class="bi bi-arrow-clockwise"></i> Actualizar Estado
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backups List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list-ul"></i> Lista de Backups
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if backups %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Tipo</th>
+                                    <th>Tamaño</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for backup in backups %}
+                                <tr class="backup-item">
+                                    <td>
+                                        <i class="bi bi-{% if backup.type == 'full' %}archive{% else %}database{% endif %} me-2"></i>
+                                        {{ backup.name }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if backup.type == 'full' %}primary{% else %}info{% endif %}">
+                                            {% if backup.type == 'full' %}Completo{% else %}Base de Datos{% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="file-size">
+                                        {{ "%.1f"|format(backup.size / 1024 / 1024) }} MB
+                                    </td>
+                                    <td>
+                                        {{ backup.created.strftime('%d/%m/%Y %H:%M') }}
+                                    </td>
+                                    <td class="backup-actions">
+                                        <a href="{{ url_for('backup.download_backup', backup_name=backup.name) }}" 
+                                           class="btn btn-sm btn-outline-primary" title="Descargar">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-success" 
+                                                onclick="showRestoreModal('{{ backup.name }}')" title="Restaurar">
+                                            <i class="bi bi-arrow-clockwise"></i>
+                                        </button>
+                                        <form method="POST" action="{{ url_for('backup.delete_backup', backup_name=backup.name) }}" 
+                                              class="d-inline" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este backup?')">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-archive display-1 text-muted"></i>
+                        <h4 class="text-muted mt-3">No hay backups disponibles</h4>
+                        <p class="text-muted">Crea tu primer backup para comenzar</p>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBackupModal">
+                            <i class="bi bi-plus-circle"></i> Crear Primer Backup
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Backup Modal -->
+<div class="modal fade" id="createBackupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle"></i> Crear Nuevo Backup
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('backup.create_backup') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="backup_type" class="form-label">Tipo de Backup</label>
+                        <select class="form-select" id="backup_type" name="backup_type" required>
+                            <option value="full">Backup Completo (Base de datos + Archivos)</option>
+                            <option value="database">Solo Base de Datos</option>
+                        </select>
+                        <div class="form-text">
+                            El backup completo incluye la base de datos y todos los archivos subidos.
+                        </div>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Nota:</strong> El proceso de backup puede tomar varios minutos dependiendo del tamaño de los datos.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-play-circle"></i> Crear Backup
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Backup Modal -->
+<div class="modal fade" id="uploadBackupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-upload"></i> Subir Backup
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('backup.upload_backup') }}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="backup_file" class="form-label">Archivo de Backup</label>
+                        <input type="file" class="form-control" id="backup_file" name="backup_file" 
+                               accept=".zip,.sql" required>
+                        <div class="form-text">
+                            Solo se permiten archivos .zip (backup completo) y .sql (base de datos).
+                        </div>
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>Advertencia:</strong> Solo sube backups de fuentes confiables.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-upload"></i> Subir Backup
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Restore Backup Modal -->
+<div class="modal fade" id="restoreBackupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-arrow-clockwise"></i> Restaurar Backup
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('backup.restore_backup') }}">
+                <div class="modal-body">
+                    <input type="hidden" id="restore_backup_name" name="backup_name">
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>¡ADVERTENCIA!</strong> Esta acción reemplazará todos los datos actuales con los del backup seleccionado.
+                        Se creará un backup de seguridad automáticamente antes de proceder.
+                    </div>
+                    <p>¿Estás seguro de que quieres restaurar el backup <strong id="restore_backup_display"></strong>?</p>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="confirm_restore" name="confirm" required>
+                        <label class="form-check-label" for="confirm_restore">
+                            Confirmo que entiendo las consecuencias de esta acción
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-arrow-clockwise"></i> Restaurar Backup
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showRestoreModal(backupName) {
+    document.getElementById('restore_backup_name').value = backupName;
+    document.getElementById('restore_backup_display').textContent = backupName;
+    document.getElementById('confirm_restore').checked = false;
+    
+    const modal = new bootstrap.Modal(document.getElementById('restoreBackupModal'));
+    modal.show();
+}
+
+function refreshStatus() {
+    // Mostrar indicador de carga
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i> Actualizando...';
+    button.disabled = true;
+    
+    // Recargar la página después de un breve delay
+    setTimeout(() => {
+        location.reload();
+    }, 1000);
+}
+
+// Agregar animación de rotación para el icono de actualizar
+const style = document.createElement('style');
+style.textContent = `
+    .spin {
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+`;
+document.head.appendChild(style);
+
+// Auto-refresh cada 30 segundos
+setInterval(() => {
+    fetch('{{ url_for("backup.backup_status") }}')
+        .then(response => response.json())
+        .then(data => {
+            // Actualizar estadísticas sin recargar la página
+            console.log('Status updated:', data);
+        })
+        .catch(error => {
+            console.error('Error updating status:', error);
+        });
+}, 30000);
+</script>
+{% endblock %}

@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar Visitante - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Registrar Visitante</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('security.visitors') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a visitantes
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="visitor_name" class="form-label">Nombre del Visitante *</label>
+                    <input type="text" class="form-control" id="visitor_name" name="visitor_name" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="visitor_id" class="form-label">Documento de Identidad</label>
+                    <input type="text" class="form-control" id="visitor_id" name="visitor_id" placeholder="Cédula, pasaporte, etc.">
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="unit_visited" class="form-label">Unidad a Visitar *</label>
+                    <input type="text" class="form-control" id="unit_visited" name="unit_visited" placeholder="Ej: 101, A-5, etc." required>
+                </div>
+                <div class="col-md-6">
+                    <label for="authorized_by" class="form-label">Autorizado por</label>
+                    <input type="text" class="form-control" id="authorized_by" name="authorized_by" placeholder="Nombre del residente">
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="purpose" class="form-label">Motivo de la Visita</label>
+                <select class="form-select" id="purpose" name="purpose">
+                    <option value="">Seleccione un motivo</option>
+                    <option value="Personal">Visita Personal</option>
+                    <option value="Trabajo">Trabajo/Servicio</option>
+                    <option value="Delivery">Entrega/Delivery</option>
+                    <option value="Mantenimiento">Mantenimiento</option>
+                    <option value="Proveedor">Proveedor</option>
+                    <option value="Otro">Otro</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="notes" class="form-label">Notas Adicionales</label>
+                <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Información adicional sobre la visita"></textarea>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="button" class="btn btn-outline-secondary" onclick="history.back()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Registrar Entrada</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Quick Access Panel -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Acceso Rápido</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Visitantes Frecuentes</h6>
+                <div id="frequent-visitors">
+                    <p class="text-muted">Cargando...</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h6>Visitantes Activos</h6>
+                <div id="active-visitors">
+                    <p class="text-muted">Cargando...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load frequent visitors
+        loadFrequentVisitors();
+        
+        // Load active visitors
+        loadActiveVisitors();
+        
+        // Auto-complete for visitor name
+        setupVisitorAutocomplete();
+    });
+    
+    function loadFrequentVisitors() {
+        // This would load from an API endpoint
+        document.getElementById('frequent-visitors').innerHTML = '<p class="text-muted">No hay visitantes frecuentes registrados</p>';
+    }
+    
+    function loadActiveVisitors() {
+        fetch('/security/api/visitors/active')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('active-visitors');
+                if (data.length === 0) {
+                    container.innerHTML = '<p class="text-muted">No hay visitantes activos</p>';
+                } else {
+                    let html = '<div class="list-group list-group-flush">';
+                    data.forEach(visitor => {
+                        html += `
+                            <div class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                <div>
+                                    <strong>${visitor.name}</strong><br>
+                                    <small class="text-muted">Unidad ${visitor.unit} - ${visitor.duration}</small>
+                                </div>
+                                <button class="btn btn-sm btn-outline-danger" onclick="registerExit(${visitor.id})">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                </button>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    container.innerHTML = html;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading active visitors:', error);
+                document.getElementById('active-visitors').innerHTML = '<p class="text-danger">Error al cargar visitantes activos</p>';
+            });
+    }
+    
+    function setupVisitorAutocomplete() {
+        const visitorNameInput = document.getElementById('visitor_name');
+        
+        visitorNameInput.addEventListener('input', function() {
+            const query = this.value;
+            if (query.length >= 2) {
+                fetch(`/security/api/visitors/search?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Simple autocomplete implementation
+                        // In a real application, you might use a library like typeahead.js
+                        console.log('Autocomplete results:', data);
+                    })
+                    .catch(error => {
+                        console.error('Error in autocomplete:', error);
+                    });
+            }
+        });
+    }
+    
+    function registerExit(visitorId) {
+        if (confirm('¿Confirmar la salida de este visitante?')) {
+            fetch(`/security/visitors/${visitorId}/exit`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadActiveVisitors(); // Refresh the list
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al registrar la salida');
+            });
+        }
+    }
+    
+    // Auto-refresh active visitors every 30 seconds
+    setInterval(loadActiveVisitors, 30000);
+</script>
+{% endblock %}

@@ -1,0 +1,483 @@
+{% extends "base.html" %}
+
+{% block title %}Centro de Reportes - PH Control{% endblock %}
+
+{% block extra_head %}
+<style>
+    .report-card {
+        transition: all 0.3s ease;
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    .report-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    .report-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        transition: transform 0.2s;
+    }
+    .stats-card:hover {
+        transform: translateY(-3px);
+    }
+    .quick-action-btn {
+        border-radius: 25px;
+        padding: 12px 30px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+    }
+    .quick-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .feature-highlight {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        margin: 2rem 0;
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="bi bi-graph-up text-primary"></i>
+                        Centro de Reportes
+                    </h1>
+                    <p class="text-muted mb-0">Genera reportes detallados y análisis de tu propiedad horizontal</p>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-outline-primary" onclick="loadQuickStats()">
+                        <i class="bi bi-arrow-clockwise"></i> Actualizar Datos
+                    </button>
+                    <a href="{{ url_for('reports.custom') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Reporte Personalizado
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-cash-coin display-4 mb-3"></i>
+                    <h4 class="mb-1" id="monthly-income">$0.00</h4>
+                    <p class="mb-0">Ingresos del Mes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-credit-card display-4 mb-3"></i>
+                    <h4 class="mb-1" id="monthly-expenses">$0.00</h4>
+                    <p class="mb-0">Gastos del Mes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-tools display-4 mb-3"></i>
+                    <h4 class="mb-1" id="pending-tasks">0</h4>
+                    <p class="mb-0">Tareas Pendientes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-house display-4 mb-3"></i>
+                    <h4 class="mb-1" id="occupancy-rate">0%</h4>
+                    <p class="mb-0">Tasa de Ocupación</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Reports -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4 class="mb-3">
+                <i class="bi bi-file-earmark-text"></i> Reportes Disponibles
+            </h4>
+        </div>
+        {% for report in stats.available_reports %}
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card report-card h-100">
+                <div class="card-body text-center">
+                    <i class="{{ report.icon }} report-icon"></i>
+                    <h5 class="card-title">{{ report.name }}</h5>
+                    <p class="card-text text-muted">{{ report.description }}</p>
+                    <a href="{{ url_for(report.url) }}" class="btn btn-primary quick-action-btn">
+                        <i class="bi bi-download"></i> Generar
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning"></i> Acciones Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <button type="button" class="btn btn-outline-success w-100" onclick="generateQuickReport('financial')">
+                                <i class="bi bi-graph-up"></i> Reporte Financiero Rápido
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button type="button" class="btn btn-outline-info w-100" onclick="generateQuickReport('payment_status')">
+                                <i class="bi bi-credit-card"></i> Estado de Pagos Actual
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button type="button" class="btn btn-outline-warning w-100" onclick="generateQuickReport('maintenance')">
+                                <i class="bi bi-tools"></i> Mantenimiento Pendiente
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button type="button" class="btn btn-outline-primary w-100" onclick="generateQuickReport('occupancy')">
+                                <i class="bi bi-house"></i> Ocupación Actual
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Highlight -->
+    <div class="row">
+        <div class="col-12">
+            <div class="feature-highlight">
+                <h3><i class="bi bi-star"></i> Reportes Inteligentes</h3>
+                <p class="lead mb-4">
+                    Nuestro sistema de reportes utiliza análisis avanzados para brindarte insights valiosos 
+                    sobre el rendimiento de tu propiedad horizontal.
+                </p>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <i class="bi bi-graph-up display-4 mb-2"></i>
+                        <h5>Análisis Financiero</h5>
+                        <p>Tendencias de ingresos y gastos con proyecciones futuras</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <i class="bi bi-calendar-check display-4 mb-2"></i>
+                        <h5>Reportes Programados</h5>
+                        <p>Recibe reportes automáticamente en tu email</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <i class="bi bi-file-earmark-pdf display-4 mb-2"></i>
+                        <h5>Múltiples Formatos</h5>
+                        <p>Exporta en PDF, CSV o JSON según tus necesidades</p>
+                    </div>
+                </div>
+                <a href="{{ url_for('reports.schedule') }}" class="btn btn-light btn-lg">
+                    <i class="bi bi-calendar-plus"></i> Programar Reportes
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Properties Summary -->
+    {% if properties %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-building"></i> Resumen de Propiedades
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Propiedad</th>
+                                    <th>Unidades</th>
+                                    <th>Ocupación</th>
+                                    <th>Ingresos Mensuales</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for property in properties %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                                {{ property.name[0].upper() }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">{{ property.name }}</div>
+                                                <small class="text-muted">{{ property.address }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">{{ property.units|length }} unidades</span>
+                                    </td>
+                                    <td>
+                                        {% set occupied = property.units|selectattr('owner')|list|length %}
+                                        {% set total = property.units|length %}
+                                        {% set rate = (occupied / total * 100) if total > 0 else 0 %}
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar" style="width: {{ rate }}%">
+                                                {{ "%.1f"|format(rate) }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% set monthly_income = property.units|sum(attribute='monthly_fee') %}
+                                        <span class="fw-bold text-success">${{ "%.2f"|format(monthly_income) }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-primary" 
+                                                    onclick="generatePropertyReport({{ property.id }}, 'financial')">
+                                                <i class="bi bi-graph-up"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-info" 
+                                                    onclick="generatePropertyReport({{ property.id }}, 'occupancy')">
+                                                <i class="bi bi-house"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-warning" 
+                                                    onclick="generatePropertyReport({{ property.id }}, 'maintenance')">
+                                                <i class="bi bi-tools"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <h5>Generando Reporte</h5>
+                <p class="text-muted mb-0">Por favor espera mientras procesamos tu solicitud...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Cargar estadísticas rápidas
+function loadQuickStats() {
+    fetch('/reports/api/quick-stats')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('Error loading stats:', data.error);
+                return;
+            }
+            
+            // Actualizar valores
+            document.getElementById('monthly-income').textContent = 
+                new Intl.NumberFormat('es-PA', { style: 'currency', currency: 'USD' }).format(data.monthly_income);
+            document.getElementById('monthly-expenses').textContent = 
+                new Intl.NumberFormat('es-PA', { style: 'currency', currency: 'USD' }).format(data.monthly_expenses);
+            document.getElementById('pending-tasks').textContent = data.pending_tasks;
+            document.getElementById('occupancy-rate').textContent = data.occupancy_rate + '%';
+        })
+        .catch(error => {
+            console.error('Error loading quick stats:', error);
+        });
+}
+
+// Generar reporte rápido
+function generateQuickReport(type) {
+    const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+    loadingModal.show();
+    
+    let url = '';
+    const today = new Date();
+    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    
+    switch(type) {
+        case 'financial':
+            url = '/reports/financial/generate';
+            break;
+        case 'payment_status':
+            url = '/reports/payment-status/generate';
+            break;
+        case 'maintenance':
+            url = '/reports/maintenance/generate';
+            break;
+        case 'occupancy':
+            url = '/reports/occupancy/generate';
+            break;
+    }
+    
+    // Crear formulario dinámico
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+    form.style.display = 'none';
+    
+    // Agregar campos según el tipo
+    if (type === 'financial' || type === 'maintenance') {
+        const startDate = document.createElement('input');
+        startDate.name = 'start_date';
+        startDate.value = lastMonth.toISOString().split('T')[0];
+        form.appendChild(startDate);
+        
+        const endDate = document.createElement('input');
+        endDate.name = 'end_date';
+        endDate.value = today.toISOString().split('T')[0];
+        form.appendChild(endDate);
+    }
+    
+    const format = document.createElement('input');
+    format.name = 'format';
+    format.value = 'pdf';
+    form.appendChild(format);
+    
+    document.body.appendChild(form);
+    form.submit();
+    
+    // Ocultar modal después de un tiempo
+    setTimeout(() => {
+        loadingModal.hide();
+        document.body.removeChild(form);
+    }, 2000);
+}
+
+// Generar reporte por propiedad
+function generatePropertyReport(propertyId, type) {
+    const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+    loadingModal.show();
+    
+    let url = '';
+    const today = new Date();
+    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    
+    switch(type) {
+        case 'financial':
+            url = '/reports/financial/generate';
+            break;
+        case 'occupancy':
+            url = '/reports/occupancy/generate';
+            break;
+        case 'maintenance':
+            url = '/reports/maintenance/generate';
+            break;
+    }
+    
+    // Crear formulario dinámico
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+    form.style.display = 'none';
+    
+    const propertyInput = document.createElement('input');
+    propertyInput.name = 'property_id';
+    propertyInput.value = propertyId;
+    form.appendChild(propertyInput);
+    
+    // Agregar fechas si es necesario
+    if (type === 'financial' || type === 'maintenance') {
+        const startDate = document.createElement('input');
+        startDate.name = 'start_date';
+        startDate.value = lastMonth.toISOString().split('T')[0];
+        form.appendChild(startDate);
+        
+        const endDate = document.createElement('input');
+        endDate.name = 'end_date';
+        endDate.value = today.toISOString().split('T')[0];
+        form.appendChild(endDate);
+    }
+    
+    const format = document.createElement('input');
+    format.name = 'format';
+    format.value = 'pdf';
+    form.appendChild(format);
+    
+    document.body.appendChild(form);
+    form.submit();
+    
+    // Ocultar modal después de un tiempo
+    setTimeout(() => {
+        loadingModal.hide();
+        document.body.removeChild(form);
+    }, 2000);
+}
+
+// Cargar estadísticas al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    loadQuickStats();
+    
+    // Auto-refresh cada 5 minutos
+    setInterval(loadQuickStats, 300000);
+});
+
+// Animaciones para las tarjetas
+document.querySelectorAll('.report-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-5px) scale(1.02)';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0) scale(1)';
+    });
+});
+</script>
+{% endblock %}

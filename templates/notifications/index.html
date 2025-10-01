@@ -1,0 +1,510 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Notificaciones - PH Control{% endblock %}
+
+{% block extra_head %}
+<style>
+    .notification-card {
+        transition: all 0.3s ease;
+        border-left: 4px solid #dee2e6;
+        margin-bottom: 15px;
+    }
+    .notification-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .notification-card.unread {
+        border-left-color: #007bff;
+        background-color: #f8f9ff;
+    }
+    .notification-card.read {
+        border-left-color: #28a745;
+        opacity: 0.8;
+    }
+    .notification-type-badge {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .notification-type-info { background-color: #d1ecf1; color: #0c5460; }
+    .notification-type-success { background-color: #d4edda; color: #155724; }
+    .notification-type-warning { background-color: #fff3cd; color: #856404; }
+    .notification-type-error { background-color: #f8d7da; color: #721c24; }
+    .notification-type-payment_due { background-color: #fff3cd; color: #856404; }
+    .notification-type-payment_overdue { background-color: #f8d7da; color: #721c24; }
+    .notification-type-maintenance_scheduled { background-color: #d1ecf1; color: #0c5460; }
+    .notification-type-assembly_reminder { background-color: #e2e3e5; color: #383d41; }
+    .notification-type-security_alert { background-color: #f8d7da; color: #721c24; }
+    .notification-type-system_update { background-color: #d4edda; color: #155724; }
+    
+    .priority-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+    }
+    .priority-low { background-color: #6c757d; }
+    .priority-normal { background-color: #007bff; }
+    .priority-high { background-color: #ffc107; }
+    .priority-urgent { background-color: #dc3545; }
+    
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        transition: transform 0.2s;
+    }
+    .stats-card:hover {
+        transform: translateY(-3px);
+    }
+    .notification-actions {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .notification-card:hover .notification-actions {
+        opacity: 1;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="bi bi-bell text-primary"></i>
+                        Mis Notificaciones
+                    </h1>
+                    <p class="text-muted mb-0">Mantente al día con las últimas actualizaciones</p>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-outline-success" onclick="markAllAsRead()">
+                        <i class="bi bi-check-all"></i> Marcar Todas como Leídas
+                    </button>
+                    <a href="{{ url_for('notifications.preferences') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-gear"></i> Preferencias
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-bell display-4 mb-3"></i>
+                    <h4 class="mb-1">{{ stats.total }}</h4>
+                    <p class="mb-0">Total de Notificaciones</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-bell-fill display-4 mb-3"></i>
+                    <h4 class="mb-1">{{ stats.unread }}</h4>
+                    <p class="mb-0">Sin Leer</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle display-4 mb-3"></i>
+                    <h4 class="mb-1">{{ stats.read }}</h4>
+                    <p class="mb-0">Leídas</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="row">
+        <div class="col-12">
+            {% if notifications.items %}
+            <!-- Filter Tabs -->
+            <div class="card mb-3">
+                <div class="card-body py-2">
+                    <ul class="nav nav-pills" id="notificationTabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" data-filter="all">
+                                <i class="bi bi-list"></i> Todas ({{ notifications.total }})
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-filter="unread">
+                                <i class="bi bi-bell"></i> Sin Leer ({{ stats.unread }})
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-filter="read">
+                                <i class="bi bi-check-circle"></i> Leídas ({{ stats.read }})
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div id="notificationsList">
+                {% for notification in notifications.items %}
+                <div class="card notification-card {% if not notification.is_read %}unread{% else %}read{% endif %}" 
+                     data-notification-id="{{ notification.id }}" 
+                     data-read="{{ notification.is_read|lower }}">
+                    <div class="card-body">
+                        <div class="row align-items-start">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="priority-indicator priority-{{ notification.priority or 'normal' }}"></span>
+                                    <span class="notification-type-badge notification-type-{{ notification.notification_type }}">
+                                        {{ notification.notification_type.replace('_', ' ').title() }}
+                                    </span>
+                                    {% if not notification.is_read %}
+                                    <span class="badge bg-primary ms-2">Nuevo</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <h5 class="card-title mb-2">
+                                    {{ notification.title }}
+                                </h5>
+                                
+                                <p class="card-text text-muted mb-2">
+                                    {{ notification.message }}
+                                </p>
+                                
+                                <div class="d-flex align-items-center text-muted small">
+                                    <i class="bi bi-clock me-1"></i>
+                                    <span>{{ notification.created_at.strftime('%d/%m/%Y a las %H:%M') }}</span>
+                                    {% if notification.expires_at %}
+                                    <span class="ms-3">
+                                        <i class="bi bi-hourglass-split me-1"></i>
+                                        Expira: {{ notification.expires_at.strftime('%d/%m/%Y') }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 text-end">
+                                <div class="notification-actions">
+                                    {% if notification.action_url %}
+                                    <a href="{{ notification.action_url }}" class="btn btn-sm btn-primary mb-2">
+                                        <i class="bi bi-arrow-right"></i> Ver Detalles
+                                    </a>
+                                    <br>
+                                    {% endif %}
+                                    
+                                    {% if not notification.is_read %}
+                                    <button type="button" class="btn btn-sm btn-outline-success me-1" 
+                                            onclick="markAsRead({{ notification.id }})">
+                                        <i class="bi bi-check"></i> Marcar Leída
+                                    </button>
+                                    {% endif %}
+                                    
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            onclick="deleteNotification({{ notification.id }})">
+                                        <i class="bi bi-trash"></i> Eliminar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if notifications.pages > 1 %}
+            <div class="card mt-3">
+                <div class="card-body">
+                    <nav aria-label="Paginación de notificaciones">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if notifications.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('notifications.index', page=notifications.prev_num) }}">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+
+                            {% for page_num in notifications.iter_pages() %}
+                            {% if page_num %}
+                            {% if page_num != notifications.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('notifications.index', page=page_num) }}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% endif %}
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">…</span>
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+
+                            {% if notifications.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('notifications.index', page=notifications.next_num) }}">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+            {% endif %}
+
+            {% else %}
+            <!-- Empty State -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="empty-state">
+                        <i class="bi bi-bell-slash"></i>
+                        <h4>No tienes notificaciones</h4>
+                        <p>Cuando recibas notificaciones del sistema, aparecerán aquí.</p>
+                        <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary">
+                            <i class="bi bi-house"></i> Ir al Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Filtros de notificaciones
+document.querySelectorAll('#notificationTabs .nav-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Actualizar tabs activos
+        document.querySelectorAll('#notificationTabs .nav-link').forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Filtrar notificaciones
+        const filter = this.dataset.filter;
+        const notifications = document.querySelectorAll('.notification-card');
+        
+        notifications.forEach(notification => {
+            const isRead = notification.dataset.read === 'true';
+            let show = false;
+            
+            switch(filter) {
+                case 'all':
+                    show = true;
+                    break;
+                case 'unread':
+                    show = !isRead;
+                    break;
+                case 'read':
+                    show = isRead;
+                    break;
+            }
+            
+            notification.style.display = show ? 'block' : 'none';
+        });
+    });
+});
+
+// Marcar notificación como leída
+function markAsRead(notificationId) {
+    fetch(`/notifications/mark-read/${notificationId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const card = document.querySelector(`[data-notification-id="${notificationId}"]`);
+            if (card) {
+                card.classList.remove('unread');
+                card.classList.add('read');
+                card.dataset.read = 'true';
+                
+                // Remover badge "Nuevo"
+                const newBadge = card.querySelector('.badge.bg-primary');
+                if (newBadge) {
+                    newBadge.remove();
+                }
+                
+                // Remover botón "Marcar Leída"
+                const markReadBtn = card.querySelector('button[onclick*="markAsRead"]');
+                if (markReadBtn) {
+                    markReadBtn.remove();
+                }
+            }
+            
+            // Actualizar contador
+            updateNotificationCounts();
+            showToast('Notificación marcada como leída', 'success');
+        } else {
+            showToast('Error marcando notificación', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Error de conexión', 'error');
+    });
+}
+
+// Marcar todas como leídas
+function markAllAsRead() {
+    if (!confirm('¿Estás seguro de que quieres marcar todas las notificaciones como leídas?')) {
+        return;
+    }
+    
+    fetch('/notifications/mark-all-read', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            showToast('Error marcando notificaciones', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Error de conexión', 'error');
+    });
+}
+
+// Eliminar notificación
+function deleteNotification(notificationId) {
+    if (!confirm('¿Estás seguro de que quieres eliminar esta notificación?')) {
+        return;
+    }
+    
+    fetch(`/notifications/delete/${notificationId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const card = document.querySelector(`[data-notification-id="${notificationId}"]`);
+            if (card) {
+                card.style.transition = 'all 0.3s ease';
+                card.style.opacity = '0';
+                card.style.transform = 'translateX(-100%)';
+                
+                setTimeout(() => {
+                    card.remove();
+                    updateNotificationCounts();
+                }, 300);
+            }
+            
+            showToast('Notificación eliminada', 'success');
+        } else {
+            showToast('Error eliminando notificación', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Error de conexión', 'error');
+    });
+}
+
+// Actualizar contadores
+function updateNotificationCounts() {
+    const allCards = document.querySelectorAll('.notification-card');
+    const unreadCards = document.querySelectorAll('.notification-card.unread');
+    const readCards = document.querySelectorAll('.notification-card.read');
+    
+    // Actualizar tabs
+    document.querySelector('[data-filter="all"]').innerHTML = 
+        `<i class="bi bi-list"></i> Todas (${allCards.length})`;
+    document.querySelector('[data-filter="unread"]').innerHTML = 
+        `<i class="bi bi-bell"></i> Sin Leer (${unreadCards.length})`;
+    document.querySelector('[data-filter="read"]').innerHTML = 
+        `<i class="bi bi-check-circle"></i> Leídas (${readCards.length})`;
+}
+
+// Mostrar toast
+function showToast(message, type = 'info') {
+    // Crear toast dinámicamente
+    const toastContainer = document.getElementById('toast-container') || createToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    // Remover toast después de que se oculte
+    toast.addEventListener('hidden.bs.toast', () => {
+        toast.remove();
+    });
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toast-container';
+    container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+    container.style.zIndex = '1055';
+    document.body.appendChild(container);
+    return container;
+}
+
+// Auto-refresh cada 30 segundos
+setInterval(() => {
+    fetch('/notifications/api/unread-count')
+        .then(response => response.json())
+        .then(data => {
+            // Actualizar contador en la navegación si existe
+            const navCounter = document.querySelector('.notification-counter');
+            if (navCounter && data.count !== undefined) {
+                navCounter.textContent = data.count;
+                navCounter.style.display = data.count > 0 ? 'inline' : 'none';
+            }
+        })
+        .catch(error => {
+            console.error('Error updating notification count:', error);
+        });
+}, 30000);
+</script>
+{% endblock %}

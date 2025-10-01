@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Tickets - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Tickets</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('communication.create_ticket') }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle"></i> Crear ticket
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" action="{{ url_for('communication.tickets') }}" class="row g-3">
+            <div class="col-md-5">
+                <label for="status" class="form-label">Estado</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="">Todos los estados</option>
+                    <option value="open" {% if filters.status == 'open' %}selected{% endif %}>Abierto</option>
+                    <option value="in_progress" {% if filters.status == 'in_progress' %}selected{% endif %}>En progreso</option>
+                    <option value="resolved" {% if filters.status == 'resolved' %}selected{% endif %}>Resuelto</option>
+                    <option value="closed" {% if filters.status == 'closed' %}selected{% endif %}>Cerrado</option>
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label for="category" class="form-label">Categoría</label>
+                <select name="category" id="category" class="form-select">
+                    <option value="">Todas las categorías</option>
+                    {% for category in categories %}
+                    <option value="{{ category }}" {% if filters.category == category %}selected{% endif %}>
+                        {{ category|replace('_', ' ')|title }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-filter"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tickets list -->
+<div class="card">
+    <div class="card-body">
+        {% if tickets.items %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Título</th>
+                        <th>Categoría</th>
+                        <th>Estado</th>
+                        <th>Prioridad</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets.items %}
+                    <tr>
+                        <td>{{ ticket.id }}</td>
+                        <td>
+                            <a href="{{ url_for('communication.view_ticket', ticket_id=ticket.id) }}">
+                                {{ ticket.title }}
+                            </a>
+                        </td>
+                        <td>{{ ticket.category|replace('_', ' ')|title }}</td>
+                        <td>
+                            {% if ticket.status == 'open' %}
+                            <span class="badge bg-primary">Abierto</span>
+                            {% elif ticket.status == 'in_progress' %}
+                            <span class="badge bg-warning">En progreso</span>
+                            {% elif ticket.status == 'resolved' %}
+                            <span class="badge bg-success">Resuelto</span>
+                            {% elif ticket.status == 'closed' %}
+                            <span class="badge bg-secondary">Cerrado</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if ticket.priority == 'low' %}
+                            <span class="badge bg-info">Baja</span>
+                            {% elif ticket.priority == 'medium' %}
+                            <span class="badge bg-primary">Media</span>
+                            {% elif ticket.priority == 'high' %}
+                            <span class="badge bg-warning">Alta</span>
+                            {% elif ticket.priority == 'urgent' %}
+                            <span class="badge bg-danger">Urgente</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ ticket.created_at|datetime }}</td>
+                        <td>
+                            <a href="{{ url_for('communication.view_ticket', ticket_id=ticket.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if tickets.pages > 1 %}
+        <nav aria-label="Paginación de tickets">
+            <ul class="pagination justify-content-center">
+                {% if tickets.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('communication.tickets', page=tickets.prev_num, status=filters.status, category=filters.category) }}">
+                        Anterior
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Anterior</span>
+                </li>
+                {% endif %}
+                
+                {% for page_num in tickets.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        {% if page_num == tickets.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('communication.tickets', page=page_num, status=filters.status, category=filters.category) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if tickets.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('communication.tickets', page=tickets.next_num, status=filters.status, category=filters.category) }}">
+                        Siguiente
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Siguiente</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-ticket-detailed display-1 text-muted"></i>
+            <p class="lead mt-3">No se encontraron tickets</p>
+            <a href="{{ url_for('communication.create_ticket') }}" class="btn btn-primary mt-2">
+                <i class="bi bi-plus-circle"></i> Crear ticket
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

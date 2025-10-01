@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Documentos - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Documentos</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        {% if current_user.role in ['admin_general', 'admin_ph'] %}
+        <div class="btn-group me-2">
+            <a href="{{ url_for('documents.upload') }}" class="btn btn-sm btn-primary">
+                <i class="bi bi-upload"></i> Subir documento
+            </a>
+            <a href="{{ url_for('documents.categories') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-folder"></i> Categorías
+            </a>
+        </div>
+        {% endif %}
+        <a href="{{ url_for('documents.search') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-search"></i> Búsqueda avanzada
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" action="{{ url_for('documents.index') }}" class="row g-3">
+            <div class="col-md-4">
+                <label for="property_id" class="form-label">Propiedad</label>
+                <select name="property_id" id="property_id" class="form-select">
+                    <option value="">Todas las propiedades</option>
+                    {% for property in properties %}
+                    <option value="{{ property.id }}" {% if filters.property_id == property.id %}selected{% endif %}>
+                        {{ property.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="document_type" class="form-label">Tipo de documento</label>
+                <select name="document_type" id="document_type" class="form-select">
+                    <option value="">Todos los tipos</option>
+                    {% for doc_type in doc_types %}
+                    <option value="{{ doc_type }}" {% if filters.document_type == doc_type %}selected{% endif %}>
+                        {{ doc_type|replace('_', ' ')|title }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="search" class="form-label">Buscar</label>
+                <input type="text" class="form-control" id="search" name="search" value="{{ filters.search or '' }}" placeholder="Título o descripción">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-filter"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Documents list -->
+<div class="card">
+    <div class="card-body">
+        {% if documents.items %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Tipo</th>
+                        <th>Propiedad</th>
+                        <th>Tamaño</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for document in documents.items %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('documents.view', document_id=document.id) }}">
+                                {{ document.title }}
+                            </a>
+                            {% if document.is_public %}
+                            <span class="badge bg-success">Público</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Privado</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ document.document_type|replace('_', ' ')|title }}</td>
+                        <td>{{ document.property.name }}</td>
+                        <td>{{ (document.file_size / 1024)|round(1) }} KB</td>
+                        <td>{{ document.created_at|datetime }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('documents.view', document_id=document.id) }}" class="btn btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ url_for('documents.download', document_id=document.id) }}" class="btn btn-outline-success">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                                {% if current_user.role in ['admin_general', 'admin_ph'] and (current_user.role == 'admin_general' or document.property.admin_id == current_user.id) %}
+                                <a href="{{ url_for('documents.edit', document_id=document.id) }}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if documents.pages > 1 %}
+        <nav aria-label="Paginación de documentos">
+            <ul class="pagination justify-content-center">
+                {% if documents.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('documents.index', page=documents.prev_num, property_id=filters.property_id, document_type=filters.document_type, search=filters.search) }}">
+                        Anterior
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Anterior</span>
+                </li>
+                {% endif %}
+                
+                {% for page_num in documents.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        {% if page_num == documents.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('documents.index', page=page_num, property_id=filters.property_id, document_type=filters.document_type, search=filters.search) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if documents.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('documents.index', page=documents.next_num, property_id=filters.property_id, document_type=filters.document_type, search=filters.search) }}">
+                        Siguiente
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Siguiente</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-folder-x display-1 text-muted"></i>
+            <p class="lead mt-3">No se encontraron documentos</p>
+            {% if current_user.role in ['admin_general', 'admin_ph'] %}
+            <a href="{{ url_for('documents.upload') }}" class="btn btn-primary mt-2">
+                <i class="bi bi-upload"></i> Subir documento
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filtros dinámicos
+        document.getElementById('property_id').addEventListener('change', function() {
+            // Aquí se podría implementar una carga dinámica de tipos de documentos
+            // basados en la propiedad seleccionada
+        });
+    });
+</script>
+{% endblock %}

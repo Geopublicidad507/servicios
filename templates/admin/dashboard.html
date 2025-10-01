@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block title %}Panel de Administración - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Panel de Administración</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('admin.properties') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-building"></i> Propiedades
+            </a>
+            <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-people"></i> Usuarios
+            </a>
+            <a href="{{ url_for('admin.system') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-gear"></i> Sistema
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Overview Cards -->
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-primary h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Propiedades</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_properties }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-building fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-success h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Unidades</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_units }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-house fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-info h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Usuarios</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_users }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-people fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-warning h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Tickets Abiertos</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ open_tickets }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-ticket fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Financial Overview -->
+<div class="row">
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Crecimiento Mensual</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="growthChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Resumen Financiero (Mes Actual)</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6>Ingresos</h6>
+                    <h3 class="text-success">${{ monthly_income }}</h3>
+                </div>
+                <div class="mb-3">
+                    <h6>Gastos</h6>
+                    <h3 class="text-danger">${{ monthly_expenses }}</h3>
+                </div>
+                <div>
+                    <h6>Balance</h6>
+                    <h3 class="{{ 'text-success' if monthly_income > monthly_expenses else 'text-danger' }}">
+                        ${{ monthly_income - monthly_expenses }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Propiedades Recientes</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% for property in recent_properties %}
+                    <a href="{{ url_for('admin.view_property', property_id=property.id) }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ property.name }}</h6>
+                            <small>{{ property.created_at|datetime }}</small>
+                        </div>
+                        <p class="mb-1">{{ property.address }}</p>
+                        <small>{{ property.total_units }} unidades</small>
+                    </a>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <p class="text-muted">No hay propiedades recientes</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('admin.properties') }}" class="btn btn-sm btn-outline-primary">Ver todas</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Usuarios Recientes</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% for user in recent_users %}
+                    <a href="{{ url_for('admin.view_user', user_id=user.id) }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ user.full_name }}</h6>
+                            <small>{{ user.created_at|datetime }}</small>
+                        </div>
+                        <p class="mb-1">{{ user.email }}</p>
+                        <small>{{ user.role|replace('_', ' ')|title }}</small>
+                    </a>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <p class="text-muted">No hay usuarios recientes</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-primary">Ver todos</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Growth Chart
+        const growthCtx = document.getElementById('growthChart').getContext('2d');
+        const growthChart = new Chart(growthCtx, {
+            type: 'line',
+            data: {
+                labels: [
+                    {% for data in growth_data %}
+                    '{{ data.month }}',
+                    {% endfor %}
+                ],
+                datasets: [{
+                    label: 'Propiedades',
+                    data: [
+                        {% for data in growth_data %}
+                        {{ data.properties }},
+                        {% endfor %}
+                    ],
+                    borderColor: 'rgba(78, 115, 223, 1)',
+                    backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                    borderWidth: 2,
+                    fill: true
+                }, {
+                    label: 'Usuarios',
+                    data: [
+                        {% for data in growth_data %}
+                        {{ data.users }},
+                        {% endfor %}
+                    ],
+                    borderColor: 'rgba(28, 200, 138, 1)',
+                    backgroundColor: 'rgba(28, 200, 138, 0.1)',
+                    borderWidth: 2,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

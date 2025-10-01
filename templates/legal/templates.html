@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Plantillas Legales - PH Control{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Plantillas Legales</h1>
+        <a href="{{ url_for('legal.compliance') }}" class="btn btn-info btn-sm">
+            <i class="fas fa-clipboard-check fa-sm text-white-50"></i> Ver Cumplimiento
+        </a>
+    </div>
+
+    <div class="row">
+        {% for template in templates %}
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{{ template.name }}</h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ template.description }}</p>
+                    <div class="mt-auto">
+                        <span class="badge badge-secondary">{{ template.type|title }}</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-primary btn-sm" onclick="downloadTemplate('{{ template.type }}')">
+                        <i class="fas fa-download mr-2"></i> Descargar
+                    </button>
+                    <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#previewModal" 
+                            onclick="previewTemplate('{{ template.type }}', '{{ template.name }}')">
+                        <i class="fas fa-eye mr-2"></i> Vista Previa
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Additional Resources -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Recursos Adicionales</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <h6><i class="fas fa-book text-primary mr-2"></i>Ley 284 de Propiedad Horizontal</h6>
+                    <p class="text-muted">Texto completo de la ley que regula las propiedades horizontales en Panamá.</p>
+                    <a href="#" class="btn btn-outline-primary btn-sm">Ver Ley</a>
+                </div>
+                <div class="col-md-4">
+                    <h6><i class="fas fa-file-contract text-info mr-2"></i>Modelos de Contratos</h6>
+                    <p class="text-muted">Plantillas de contratos para administradores, proveedores y servicios.</p>
+                    <a href="#" class="btn btn-outline-info btn-sm">Descargar</a>
+                </div>
+                <div class="col-md-4">
+                    <h6><i class="fas fa-gavel text-warning mr-2"></i>Guía Legal</h6>
+                    <p class="text-muted">Manual práctico para administradores sobre cumplimiento legal.</p>
+                    <a href="#" class="btn btn-outline-warning btn-sm">Consultar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalTitle">Vista Previa</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="previewContent">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="downloadFromPreview">
+                    <i class="fas fa-download mr-2"></i> Descargar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentTemplateType = null;
+
+function downloadTemplate(type) {
+    // In a real implementation, this would generate and download the template
+    showAlert('info', `Descargando plantilla de ${type}...`);
+    
+    // Simulate download
+    setTimeout(() => {
+        showAlert('success', 'Plantilla descargada exitosamente');
+    }, 1000);
+}
+
+function previewTemplate(type, name) {
+    currentTemplateType = type;
+    document.getElementById('previewModalTitle').textContent = `Vista Previa: ${name}`;
+    
+    const previewContent = document.getElementById('previewContent');
+    
+    // Sample preview content based on template type
+    let content = '';
+    
+    switch(type) {
+        case 'convocation':
+            content = `
+                <div class="text-center mb-4">
+                    <h4>CONVOCATORIA A ASAMBLEA</h4>
+                </div>
+                <p><strong>Propiedad Horizontal:</strong> [NOMBRE DE LA PROPIEDAD]</p>
+                <p><strong>Dirección:</strong> [DIRECCIÓN]</p>
+                <p><strong>Código:</strong> [CÓDIGO]</p>
+                <br>
+                <p><strong>Tipo de Asamblea:</strong> [ORDINARIA/EXTRAORDINARIA]</p>
+                <p><strong>Fecha:</strong> [FECHA]</p>
+                <p><strong>Hora:</strong> [HORA]</p>
+                <p><strong>Lugar:</strong> [LUGAR]</p>
+                <p><strong>Quórum Requerido:</strong> [PORCENTAJE]%</p>
+                <br>
+                <p><strong>Orden del Día:</strong></p>
+                <ol>
+                    <li>Verificación del quórum</li>
+                    <li>Lectura y aprobación del acta anterior</li>
+                    <li>Informe del administrador</li>
+                    <li>Estados financieros</li>
+                    <li>Varios</li>
+                </ol>
+            `;
+            break;
+        case 'minutes':
+            content = `
+                <div class="text-center mb-4">
+                    <h4>ACTA DE ASAMBLEA</h4>
+                </div>
+                <p><strong>Propiedad Horizontal:</strong> [NOMBRE]</p>
+                <p><strong>Fecha:</strong> [FECHA]</p>
+                <p><strong>Hora:</strong> [HORA]</p>
+                <p><strong>Lugar:</strong> [LUGAR]</p>
+                <p><strong>Quórum Logrado:</strong> [PORCENTAJE]%</p>
+                <br>
+                <p><strong>DESARROLLO DE LA ASAMBLEA:</strong></p>
+                <p>[CONTENIDO DEL ACTA]</p>
+                <br>
+                <p>_________________________________</p>
+                <p>Administrador de la Propiedad Horizontal</p>
+                <p>_________________________________</p>
+                <p>Secretario de la Asamblea</p>
+            `;
+            break;
+        case 'regulation':
+            content = `
+                <div class="text-center mb-4">
+                    <h4>REGLAMENTO INTERNO</h4>
+                    <h5>[NOMBRE DE LA PROPIEDAD HORIZONTAL]</h5>
+                </div>
+                <h6>CAPÍTULO I - DISPOSICIONES GENERALES</h6>
+                <p>Artículo 1. El presente reglamento tiene por objeto...</p>
+                <br>
+                <h6>CAPÍTULO II - DE LA ADMINISTRACIÓN</h6>
+                <p>Artículo 2. La administración estará a cargo de...</p>
+                <br>
+                <h6>CAPÍTULO III - DE LOS COPROPIETARIOS</h6>
+                <p>Artículo 3. Son derechos de los copropietarios...</p>
+            `;
+            break;
+        default:
+            content = '<p>Vista previa no disponible para este tipo de plantilla.</p>';
+    }
+    
+    previewContent.innerHTML = content;
+}
+
+document.getElementById('downloadFromPreview').addEventListener('click', function() {
+    if (currentTemplateType) {
+        downloadTemplate(currentTemplateType);
+        $('#previewModal').modal('hide');
+    }
+});
+
+function showAlert(type, message) {
+    const alertClass = type === 'success' ? 'alert-success' : type === 'info' ? 'alert-info' : 'alert-danger';
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    container.insertAdjacentHTML('afterbegin', alertHtml);
+    
+    setTimeout(() => {
+        const alert = container.querySelector('.alert');
+        if (alert) {
+            alert.remove();
+        }
+    }, 3000);
+}
+</script>
+{% endblock %}

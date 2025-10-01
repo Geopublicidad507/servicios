@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Flujo de Caja - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Flujo de Caja</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('financial.reports') }}" class="btn btn-sm btn-outline-secondary me-2">
+            <i class="bi bi-arrow-left"></i> Volver a reportes
+        </a>
+        <a href="{{ url_for('financial.cash_flow', property_id=request.args.get('property_id'), date_from=start_date, date_to=end_date, format='pdf') }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">Flujo de Caja - {{ start_date }} a {{ end_date }}</h5>
+    </div>
+    <div class="card-body">
+        {% if properties %}
+        <div class="mb-3">
+            <strong>Propiedades:</strong> {{ ', '.join(properties) }}
+        </div>
+        {% endif %}
+        
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Ingresos</h5>
+                        <h2>${{ total_inflows|round(2) }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-danger text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Egresos</h5>
+                        <h2>${{ total_outflows|round(2) }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card {{ 'bg-success' if total_net >= 0 else 'bg-danger' }} text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Flujo Neto</h5>
+                        <h2>${{ total_net|round(2) }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Flujo de Caja Diario</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th class="text-end">Ingresos</th>
+                                <th class="text-end">Egresos</th>
+                                <th class="text-end">Neto</th>
+                                <th class="text-end">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for date_str, data in cash_flow_data.items()|sort %}
+                                {% if data.inflows > 0 or data.outflows > 0 %}
+                                <tr>
+                                    <td>{{ date_str }}</td>
+                                    <td class="text-end text-success">${{ data.inflows|round(2) }}</td>
+                                    <td class="text-end text-danger">${{ data.outflows|round(2) }}</td>
+                                    <td class="text-end {{ 'text-success' if data.net >= 0 else 'text-danger' }}">${{ data.net|round(2) }}</td>
+                                    <td class="text-end {{ 'text-success' if data.balance >= 0 else 'text-danger' }}">${{ data.balance|round(2) }}</td>
+                                </tr>
+                                {% endif %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center">No hay datos de flujo de caja para el período seleccionado.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-primary">
+                                <th>TOTALES</th>
+                                <th class="text-end text-success">${{ total_inflows|round(2) }}</th>
+                                <th class="text-end text-danger">${{ total_outflows|round(2) }}</th>
+                                <th class="text-end {{ 'text-success' if total_net >= 0 else 'text-danger' }}">${{ total_net|round(2) }}</th>
+                                <th class="text-end {{ 'text-success' if final_balance >= 0 else 'text-danger' }}">${{ final_balance|round(2) }}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Gráfico de Flujo de Caja</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="cashFlowChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Prepare data for chart
+        const dates = [];
+        const inflows = [];
+        const outflows = [];
+        const balances = [];
+        
+        {% for date_str, data in cash_flow_data.items()|sort %}
+            {% if data.inflows > 0 or data.outflows > 0 %}
+                dates.push('{{ date_str }}');
+                inflows.push({{ data.inflows }});
+                outflows.push({{ data.outflows }});
+                balances.push({{ data.balance }});
+            {% endif %}
+        {% endfor %}
+        
+        // Create chart
+        const ctx = document.getElementById('cashFlowChart').getContext('2d');
+        const cashFlowChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [
+                    {
+                        label: 'Ingresos',
+                        data: inflows,
+                        backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 2,
+                        fill: false
+                    },
+                    {
+                        label: 'Egresos',
+                        data: outflows,
+                        backgroundColor: 'rgba(220, 53, 69, 0.2)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 2,
+                        fill: false
+                    },
+                    {
+                        label: 'Balance',
+                        data: balances,
+                        backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        borderWidth: 2,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

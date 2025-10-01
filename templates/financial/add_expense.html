@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar Gasto - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Registrar Gasto</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('financial.expenses') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a gastos
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="property_id" class="form-label">Propiedad *</label>
+                    <select name="property_id" id="property_id" class="form-select" required>
+                        <option value="">Seleccione una propiedad</option>
+                        {% for property in properties %}
+                        <option value="{{ property.id }}">{{ property.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="category" class="form-label">Categoría *</label>
+                    <select name="category" id="category" class="form-select" required>
+                        <option value="">Seleccione una categoría</option>
+                        <option value="maintenance">Mantenimiento</option>
+                        <option value="utilities">Servicios Públicos</option>
+                        <option value="administrative">Administrativo</option>
+                        <option value="repairs">Reparaciones</option>
+                        <option value="security">Seguridad</option>
+                        <option value="cleaning">Limpieza</option>
+                        <option value="insurance">Seguros</option>
+                        <option value="taxes">Impuestos</option>
+                        <option value="other">Otro</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="description" class="form-label">Descripción *</label>
+                <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="amount" class="form-label">Monto *</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label for="expense_date" class="form-label">Fecha del Gasto *</label>
+                    <input type="date" class="form-control" id="expense_date" name="expense_date" required>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="vendor" class="form-label">Proveedor</label>
+                    <input type="text" class="form-control" id="vendor" name="vendor">
+                </div>
+                <div class="col-md-6">
+                    <label for="invoice_number" class="form-label">Número de Factura</label>
+                    <input type="text" class="form-control" id="invoice_number" name="invoice_number">
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="payment_method" class="form-label">Método de Pago</label>
+                <select name="payment_method" id="payment_method" class="form-select">
+                    <option value="cash">Efectivo</option>
+                    <option value="bank_transfer">Transferencia Bancaria</option>
+                    <option value="check">Cheque</option>
+                    <option value="credit_card">Tarjeta de Crédito</option>
+                    <option value="debit_card">Tarjeta de Débito</option>
+                    <option value="other">Otro</option>
+                </select>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="button" class="btn btn-outline-secondary" onclick="history.back()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Registrar Gasto</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default date to today
+        document.getElementById('expense_date').valueAsDate = new Date();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes del Sistema - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Reportes del Sistema</h1>
+        <button class="btn btn-primary btn-sm" onclick="generateFullReport()">
+            <i class="fas fa-file-pdf fa-sm text-white-50"></i> Reporte Completo
+        </button>
+    </div>
+
+    <!-- Report Categories -->
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Reportes Financieros</h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Reportes relacionados con ingresos, gastos y estados financieros.</p>
+                    <div class="list-group list-group-flush">
+                        <button class="list-group-item list-group-item-action" onclick="generateReport('financial_summary')">
+                            <i class="fas fa-chart-line text-success mr-2"></i>
+                            Resumen Financiero
+                        </button>
+                        <button class="list-group-item list-group-item-action" onclick="generateReport('income_report')">
+                            <i class="fas fa-dollar-sign text-success mr-2"></i>
+                            Reporte de Ingresos
+                        </button>
+                        <button class="list-group-item list-group-item-action" onclick="generateReport('expense_report')">
+                            <i class="fas fa-shopping-cart text-danger mr-2"></i>
+                            Reporte de Gastos
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Reportes de Usuarios</h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Información sobre usuarios, propiedades y actividad del sistema.</p>
+                    <div class="list-group list-group-flush">
+                        <button class="list-group-item list-group-item-action" onclick="generateReport('users_summary')">
+                            <i class="fas fa-users text-info mr-2"></i>
+                            Resumen de Usuarios
+                        </button>
+                        <button class="list-group-item list-group-item-action" onclick="generateReport('properties_report')">
+                            <i class="fas fa-building text-primary mr-2"></i>
+                            Reporte de Propiedades
+                        </button>
+                        <button class="list-group-item list-group-item-action" onclick="generateReport('activity_report')">
+                            <i class="fas fa-chart-bar text-warning mr-2"></i>
+                            Actividad del Sistema
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Reportes Operativos</h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Reportes de mantenimiento, seguridad y operaciones diarias.</p>
+                    <div class="list-group list-group-flush">
+                        <button class="list-group-item list-group-item-action" onclick="generateReport('maintenance_report')">
+                            <i class="fas fa-tools text-warning mr-2"></i>
+                            Reporte de Mantenimiento
+                        </button>
+                        <button class="list-group-item list-group-item-action" onclick="generateReport('security_report')">
+                            <i class="fas fa-shield-alt text-danger mr-2"></i>
+                            Reporte de Seguridad
+                        </button>
+                        <button class="list-group-item list-group-item-action" onclick="generateReport('tickets_report')">
+                            <i class="fas fa-ticket-alt text-info mr-2"></i>
+                            Reporte de Tickets
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Report Generator -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Generador de Reportes Personalizados</h6>
+        </div>
+        <div class="card-body">
+            <form id="customReportForm">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="report_type">Tipo de Reporte</label>
+                            <select class="form-control" id="report_type" name="report_type">
+                                <option value="financial">Financiero</option>
+                                <option value="users">Usuarios</option>
+                                <option value="properties">Propiedades</option>
+                                <option value="maintenance">Mantenimiento</option>
+                                <option value="security">Seguridad</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="date_from">Fecha Desde</label>
+                            <input type="date" class="form-control" id="date_from" name="date_from">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="date_to">Fecha Hasta</label>
+                            <input type="date" class="form-control" id="date_to" name="date_to">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="format">Formato</label>
+                            <select class="form-control" id="format" name="format">
+                                <option value="pdf">PDF</option>
+                                <option value="excel">Excel</option>
+                                <option value="csv">CSV</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button type="button" class="btn btn-success" onclick="generateCustomReport()">
+                        <i class="fas fa-file-export mr-2"></i> Generar Reporte Personalizado
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Recent Reports -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Reportes Recientes</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Reporte</th>
+                            <th>Tipo</th>
+                            <th>Fecha Generación</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentReportsTable">
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                No hay reportes generados recientemente
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let recentReports = [];
+
+function generateReport(reportType) {
+    showAlert('info', `Generando reporte: ${reportType.replace('_', ' ')}...`);
+    
+    // Simulate report generation
+    setTimeout(() => {
+        const report = {
+            id: Date.now(),
+            name: reportType.replace('_', ' ').toUpperCase(),
+            type: reportType,
+            date: new Date().toLocaleString(),
+            status: 'Completado'
+        };
+        
+        recentReports.unshift(report);
+        updateRecentReportsTable();
+        
+        showAlert('success', 'Reporte generado exitosamente');
+    }, 2000);
+}
+
+function generateCustomReport() {
+    const form = document.getElementById('customReportForm');
+    const formData = new FormData(form);
+    
+    const reportType = formData.get('report_type');
+    const dateFrom = formData.get('date_from');
+    const dateTo = formData.get('date_to');
+    const format = formData.get('format');
+    
+    showAlert('info', `Generando reporte personalizado de ${reportType} en formato ${format.toUpperCase()}...`);
+    
+    // Simulate custom report generation
+    setTimeout(() => {
+        const report = {
+            id: Date.now(),
+            name: `Reporte Personalizado - ${reportType.toUpperCase()}`,
+            type: 'custom',
+            date: new Date().toLocaleString(),
+            status: 'Completado',
+            format: format.toUpperCase()
+        };
+        
+        recentReports.unshift(report);
+        updateRecentReportsTable();
+        
+        showAlert('success', 'Reporte personalizado generado exitosamente');
+    }, 3000);
+}
+
+function generateFullReport() {
+    showAlert('info', 'Generando reporte completo del sistema...');
+    
+    // Simulate full report generation
+    setTimeout(() => {
+        const report = {
+            id: Date.now(),
+            name: 'REPORTE COMPLETO DEL SISTEMA',
+            type: 'full_system',
+            date: new Date().toLocaleString(),
+            status: 'Completado'
+        };
+        
+        recentReports.unshift(report);
+        updateRecentReportsTable();
+        
+        showAlert('success', 'Reporte completo generado exitosamente');
+    }, 4000);
+}
+
+function updateRecentReportsTable() {
+    const tbody = document.getElementById('recentReportsTable');
+    
+    if (recentReports.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-muted">
+                    No hay reportes generados recientemente
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = recentReports.slice(0, 10).map(report => `
+        <tr>
+            <td>${report.name}</td>
+            <td>
+                <span class="badge badge-info">${report.type.replace('_', ' ').toUpperCase()}</span>
+                ${report.format ? `<span class="badge badge-secondary ml-1">${report.format}</span>` : ''}
+            </td>
+            <td><small>${report.date}</small></td>
+            <td><span class="badge badge-success">${report.status}</span></td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="downloadReport(${report.id})">
+                    <i class="fas fa-download"></i> Descargar
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function downloadReport(reportId) {
+    const report = recentReports.find(r => r.id === reportId);
+    if (report) {
+        showAlert('success', `Descargando: ${report.name}`);
+    }
+}
+
+function showAlert(type, message) {
+    const alertClass = type === 'success' ? 'alert-success' : type === 'info' ? 'alert-info' : 'alert-danger';
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    container.insertAdjacentHTML('afterbegin', alertHtml);
+    
+    setTimeout(() => {
+        const alert = container.querySelector('.alert');
+        if (alert) {
+            alert.remove();
+        }
+    }, 5000);
+}
+
+// Set default dates
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+    
+    document.getElementById('date_from').value = lastMonth.toISOString().split('T')[0];
+    document.getElementById('date_to').value = today.toISOString().split('T')[0];
+});
+</script>
+{% endblock %}

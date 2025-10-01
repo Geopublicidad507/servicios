@@ -1,0 +1,79 @@
+# Configuración para PH Control Docker
+# Este archivo contiene configuraciones que puedes modificar según tus necesidades
+
+# ======================
+# CONFIGURACIÓN DE PUERTOS
+# ======================
+ports:
+  web: 5003          # Puerto para la aplicación web
+  database: 5435     # Puerto externo para PostgreSQL
+  redis: 6379        # Puerto para Redis
+
+# ======================
+# CONFIGURACIÓN DE BASE DE DATOS
+# ======================
+database:
+  name: phcontrol_db
+  user: phcontrol
+  password: phcontrol123
+  host: ph-database
+  port: 5432
+
+# ======================
+# CONFIGURACIÓN DE LA APLICACIÓN
+# ======================
+app:
+  environment: development    # development | production
+  debug: true
+  secret_key: dev-secret-key-change-in-production-ph-control-2024
+  
+# ======================
+# CONFIGURACIÓN DE INICIALIZACIÓN
+# ======================
+initialization:
+  create_sample_data: true    # Crear datos de prueba
+  skip_init: false           # Saltar inicialización automática
+
+# ======================
+# CONFIGURACIÓN DE CONTENEDORES
+# ======================
+containers:
+  web:
+    name: ph-control-web
+    restart: unless-stopped
+  database:
+    name: ph-control-database
+    restart: unless-stopped
+  redis:
+    name: ph-control-redis
+    restart: unless-stopped
+
+# ======================
+# CONFIGURACIÓN DE VOLÚMENES
+# ======================
+volumes:
+  postgres_data: ph_postgres_data
+  uploads: ph_uploads
+
+# ======================
+# CONFIGURACIÓN DE RED
+# ======================
+network:
+  name: ph-network
+  driver: bridge
+
+# ======================
+# CONFIGURACIÓN DE DESARROLLO
+# ======================
+development:
+  mount_source_code: true    # Montar código fuente para desarrollo
+  auto_reload: true          # Recarga automática en cambios
+
+# ======================
+# CONFIGURACIÓN DE PRODUCCIÓN
+# ======================
+production:
+  mount_source_code: false   # No montar código fuente
+  auto_reload: false         # Sin recarga automática
+  create_sample_data: false  # No crear datos de prueba
+  debug: false              # Sin modo debug

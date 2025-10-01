@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Asambleas - PH Control{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Gestión de Asambleas</h1>
+        <a href="{{ url_for('legal.create_assembly') }}" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus fa-sm text-white-50"></i> Nueva Asamblea
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Lista de Asambleas</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Tipo</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Propiedad</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for assembly in assemblies.items %}
+                        <tr>
+                            <td>{{ assembly.title }}</td>
+                            <td>{{ assembly.assembly_type|title }}</td>
+                            <td>{{ assembly.scheduled_date|datetime }}</td>
+                            <td>{{ assembly.status|status_badge|safe }}</td>
+                            <td>{{ assembly.property.name }}</td>
+                            <td>
+                                <a href="{{ url_for('legal.view_assembly', assembly_id=assembly.id) }}" 
+                                   class="btn btn-info btn-sm">Ver</a>
+                                <a href="{{ url_for('legal.edit_assembly', assembly_id=assembly.id) }}" 
+                                   class="btn btn-warning btn-sm">Editar</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if assemblies.pages > 1 %}
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if assemblies.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('legal.assemblies', page=assemblies.prev_num) }}">Anterior</a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for page_num in assemblies.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != assemblies.page %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('legal.assemblies', page=page_num) }}">{{ page_num }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if assemblies.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('legal.assemblies', page=assemblies.next_num) }}">Siguiente</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Seguridad y Control de Acceso - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Seguridad y Control de Acceso</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('security.visitors') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-people"></i> Visitantes
+            </a>
+            <a href="{{ url_for('security.incidents') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-exclamation-triangle"></i> Incidentes
+            </a>
+        </div>
+        <a href="{{ url_for('security.register_visitor') }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle"></i> Registrar Visitante
+        </a>
+    </div>
+</div>
+
+<!-- Overview Cards -->
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-primary h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Visitantes Hoy</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ visitors_today }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-person-check fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-success h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Visitantes Activos</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_visitors }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-person-plus fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-warning h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Incidentes (Mes)</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">0</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-exclamation-triangle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-info h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Total Propiedades</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ properties|length }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-building fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Active Visitors -->
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        <h5 class="card-title mb-0">Visitantes Activos (En el edificio)</h5>
+    </div>
+    <div class="card-body">
+        <div class="text-center py-3">
+            <p class="text-muted">No hay visitantes activos en este momento</p>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Visitors -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Visitantes Recientes (Últimas 24 horas)</h5>
+    </div>
+    <div class="card-body">
+        {% if recent_logs %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Documento</th>
+                        <th>Unidad Visitada</th>
+                        <th>Entrada</th>
+                        <th>Salida</th>
+                        <th>Duración</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for visitor in recent_logs %}
+                    <tr>
+                        <td>{{ visitor.visitor_name }}</td>
+                        <td>{{ visitor.visitor_id or 'N/A' }}</td>
+                        <td>{{ visitor.unit_visited }}</td>
+                        <td>{{ visitor.entry_time|datetime }}</td>
+                        <td>
+                            {% if visitor.exit_time %}
+                            {{ visitor.exit_time|datetime }}
+                            {% else %}
+                            <span class="badge bg-success">Activo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if visitor.exit_time %}
+                            {{ ((visitor.exit_time - visitor.entry_time).total_seconds() / 3600)|round(1) }} horas
+                            {% else %}
+                            En curso
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="text-center mt-3">
+            <a href="{{ url_for('security.visitors') }}" class="btn btn-outline-primary">Ver todos los registros</a>
+        </div>
+        {% else %}
+        <div class="text-center py-3">
+            <p class="text-muted">No hay visitantes registrados en las últimas 24 horas</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Incidents -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Incidentes Recientes</h5>
+    </div>
+    <div class="card-body">
+        <div class="text-center py-3">
+            <p class="text-muted">No hay incidentes recientes</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function registerExit(visitorId) {
+        if (confirm('¿Confirmar la salida de este visitante?')) {
+            fetch(`/security/visitors/${visitorId}/exit`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al registrar la salida');
+            });
+        }
+    }
+</script>
+{% endblock %}

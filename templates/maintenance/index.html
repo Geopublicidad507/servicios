@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}Mantenimiento - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Gestión de Mantenimiento</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('maintenance.tasks') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-list-check"></i> Tareas
+            </a>
+            <a href="{{ url_for('maintenance.schedule') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-calendar3"></i> Calendario
+            </a>
+            {% if current_user.role in ['admin_general', 'admin_ph'] %}
+            <a href="{{ url_for('maintenance.preventive') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-shield-check"></i> Preventivo
+            </a>
+            {% endif %}
+        </div>
+        {% if current_user.role in ['admin_general', 'admin_ph'] %}
+        <a href="{{ url_for('maintenance.create_task') }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle"></i> Nueva Tarea
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Overview Cards -->
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-primary h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Tareas</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_tasks }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-tools fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-warning h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Pendientes</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_tasks }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-hourglass-split fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-info h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            En Progreso</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ in_progress_tasks }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-gear-wide-connected fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-success h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Completadas</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ completed_tasks }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Overdue Tasks -->
+<div class="card mb-4">
+    <div class="card-header bg-danger text-white">
+        <h5 class="card-title mb-0">Tareas Vencidas</h5>
+    </div>
+    <div class="card-body">
+        {% if overdue_tasks %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Propiedad</th>
+                        <th>Tipo</th>
+                        <th>Prioridad</th>
+                        <th>Fecha Programada</th>
+                        <th>Días Vencida</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in overdue_tasks %}
+                    <tr>
+                        <td>{{ task.title }}</td>
+                        <td>{{ task.property.name }}</td>
+                        <td>{{ task.task_type|replace('_', ' ')|title }}</td>
+                        <td>
+                            {% if task.priority == 'low' %}
+                            <span class="badge bg-info">Baja</span>
+                            {% elif task.priority == 'medium' %}
+                            <span class="badge bg-primary">Media</span>
+                            {% elif task.priority == 'high' %}
+                            <span class="badge bg-warning">Alta</span>
+                            {% elif task.priority == 'urgent' %}
+                            <span class="badge bg-danger">Urgente</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ task.scheduled_date }}</td>
+                        <td>{{ task.scheduled_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <a href="{{ url_for('maintenance.view_task', task_id=task.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-3">
+            <p class="text-muted">No hay tareas vencidas</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Upcoming Tasks -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">Próximas Tareas (7 días)</h5>
+    </div>
+    <div class="card-body">
+        {% if upcoming_tasks %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Propiedad</th>
+                        <th>Tipo</th>
+                        <th>Prioridad</th>
+                        <th>Fecha Programada</th>
+                        <th>Asignado a</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in upcoming_tasks %}
+                    <tr>
+                        <td>{{ task.title }}</td>
+                        <td>{{ task.property.name }}</td>
+                        <td>{{ task.task_type|replace('_', ' ')|title }}</td>
+                        <td>
+                            {% if task.priority == 'low' %}
+                            <span class="badge bg-info">Baja</span>
+                            {% elif task.priority == 'medium' %}
+                            <span class="badge bg-primary">Media</span>
+                            {% elif task.priority == 'high' %}
+                            <span class="badge bg-warning">Alta</span>
+                            {% elif task.priority == 'urgent' %}
+                            <span class="badge bg-danger">Urgente</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ task.scheduled_date }}</td>
+                        <td>{{ task.assigned_to or 'Sin asignar' }}</td>
+                        <td>
+                            <a href="{{ url_for('maintenance.view_task', task_id=task.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-3">
+            <p class="text-muted">No hay tareas programadas para los próximos 7 días</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Tasks -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Tareas Recientes</h5>
+    </div>
+    <div class="card-body">
+        {% if recent_tasks %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Propiedad</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Fecha Creación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in recent_tasks %}
+                    <tr>
+                        <td>{{ task.title }}</td>
+                        <td>{{ task.property.name }}</td>
+                        <td>{{ task.task_type|replace('_', ' ')|title }}</td>
+                        <td>
+                            {% if task.status == 'pending' %}
+                            <span class="badge bg-warning">Pendiente</span>
+                            {% elif task.status == 'in_progress' %}
+                            <span class="badge bg-info">En Progreso</span>
+                            {% elif task.status == 'completed' %}
+                            <span class="badge bg-success">Completada</span>
+                            {% elif task.status == 'cancelled' %}
+                            <span class="badge bg-secondary">Cancelada</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ task.created_at|datetime }}</td>
+                        <td>
+                            <a href="{{ url_for('maintenance.view_task', task_id=task.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="text-center mt-3">
+            <a href="{{ url_for('maintenance.tasks') }}" class="btn btn-outline-primary">Ver todas las tareas</a>
+        </div>
+        {% else %}
+        <div class="text-center py-3">
+            <p class="text-muted">No hay tareas recientes</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

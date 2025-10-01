@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+
+{% block title %}Auditoría del Sistema - PH Control{% endblock %}
+
+{% block extra_head %}
+<style>
+    .audit-card {
+        transition: transform 0.2s;
+        border-left: 4px solid #007bff;
+    }
+    .audit-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin: 0 auto 1rem;
+    }
+    .activity-item {
+        border-left: 3px solid #dee2e6;
+        transition: border-color 0.3s;
+    }
+    .activity-item:hover {
+        border-left-color: #007bff;
+    }
+    .success-badge { background-color: #d4edda; color: #155724; }
+    .error-badge { background-color: #f8d7da; color: #721c24; }
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="bi bi-shield-check text-primary"></i>
+                        Auditoría del Sistema
+                    </h1>
+                    <p class="text-muted mb-0">Monitoreo y seguimiento de actividades del sistema</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('audit.logs') }}" class="btn btn-primary">
+                        <i class="bi bi-list-ul"></i> Ver Todos los Logs
+                    </a>
+                    <a href="{{ url_for('audit.security') }}" class="btn btn-outline-warning">
+                        <i class="bi bi-shield-exclamation"></i> Seguridad
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card audit-card h-100">
+                <div class="card-body text-center">
+                    <div class="stat-icon bg-primary text-white">
+                        <i class="bi bi-journal-text"></i>
+                    </div>
+                    <h4 class="mb-1">{{ "{:,}".format(stats.total_logs) }}</h4>
+                    <p class="text-muted mb-0">Total de Logs</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card audit-card h-100">
+                <div class="card-body text-center">
+                    <div class="stat-icon bg-info text-white">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <h4 class="mb-1">{{ stats.recent_logs }}</h4>
+                    <p class="text-muted mb-0">Últimas 24h</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card audit-card h-100">
+                <div class="card-body text-center">
+                    <div class="stat-icon bg-{% if stats.failed_logs > 0 %}warning{% else %}success{% endif %} text-white">
+                        <i class="bi bi-{% if stats.failed_logs > 0 %}exclamation-triangle{% else %}check-circle{% endif %}"></i>
+                    </div>
+                    <h4 class="mb-1">{{ stats.failed_logs }}</h4>
+                    <p class="text-muted mb-0">Errores (24h)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card audit-card h-100">
+                <div class="card-body text-center">
+                    <div class="stat-icon bg-success text-white">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <h4 class="mb-1">{{ stats.active_users|length }}</h4>
+                    <p class="text-muted mb-0">Usuarios Activos</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Activity -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-activity"></i> Actividad Reciente
+                    </h5>
+                    <a href="{{ url_for('audit.logs') }}" class="btn btn-sm btn-outline-primary">
+                        Ver Todos
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_logs %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Acción</th>
+                                    <th>Recurso</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in recent_logs %}
+                                <tr class="activity-item">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-light rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                                <i class="bi bi-person text-muted"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">{{ log.user_email or 'Sistema' }}</div>
+                                                {% if log.ip_address %}
+                                                <small class="text-muted">{{ log.ip_address }}</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">{{ log.action }}</span>
+                                    </td>
+                                    <td>
+                                        {% if log.resource_type %}
+                                        <small class="text-muted">
+                                            {{ log.resource_type }}
+                                            {% if log.resource_id %}#{{ log.resource_id }}{% endif %}
+                                        </small>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if log.success %}success-badge{% else %}error-badge{% endif %}">
+                                            {% if log.success %}
+                                                <i class="bi bi-check-circle"></i> Éxito
+                                            {% else %}
+                                                <i class="bi bi-x-circle"></i> Error
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ log.timestamp.strftime('%d/%m/%Y %H:%M') }}
+                                        </small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-journal-x display-4 text-muted"></i>
+                        <p class="text-muted mt-2">No hay actividad reciente</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Users and Actions -->
+        <div class="col-lg-4">
+            <!-- Top Active Users -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-people"></i> Usuarios Más Activos (7 días)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if stats.active_users %}
+                    {% for user in stats.active_users[:5] %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-sm bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                {{ user.user_email[0].upper() if user.user_email else 'S' }}
+                            </div>
+                            <div>
+                                <div class="fw-medium">{{ user.user_email or 'Sistema' }}</div>
+                            </div>
+                        </div>
+                        <span class="badge bg-light text-dark">{{ user.activity_count }}</span>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted text-center">No hay datos disponibles</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Top Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-bar-chart"></i> Acciones Más Comunes (7 días)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if stats.common_actions %}
+                    {% for action in stats.common_actions[:5] %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <span class="fw-medium">{{ action.action.replace('_', ' ').title() }}</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="progress me-2" style="width: 60px; height: 8px;">
+                                <div class="progress-bar bg-primary" 
+                                     style="width: {{ (action.action_count / stats.common_actions[0].action_count * 100) if stats.common_actions else 0 }}%"></div>
+                            </div>
+                            <span class="badge bg-light text-dark">{{ action.action_count }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted text-center">No hay datos disponibles</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-tools"></i> Acciones Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('audit.logs') }}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-search"></i> Buscar Logs
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('audit.security') }}" class="btn btn-outline-warning w-100">
+                                <i class="bi bi-shield-exclamation"></i> Eventos de Seguridad
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('audit.export') }}?format=csv" class="btn btn-outline-success w-100">
+                                <i class="bi bi-download"></i> Exportar CSV
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#cleanupModal">
+                                <i class="bi bi-trash"></i> Limpiar Logs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cleanup Modal -->
+<div class="modal fade" id="cleanupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-trash"></i> Limpiar Logs Antiguos
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('audit.cleanup_logs') }}">
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>Advertencia:</strong> Esta acción eliminará permanentemente los logs antiguos.
+                    </div>
+                    <div class="mb-3">
+                        <label for="days" class="form-label">Eliminar logs más antiguos que:</label>
+                        <select class="form-select" id="days" name="days" required>
+                            <option value="90">90 días</option>
+                            <option value="180">180 días</option>
+                            <option value="365" selected>1 año</option>
+                            <option value="730">2 años</option>
+                        </select>
+                        <div class="form-text">
+                            Los logs más recientes que este período se mantendrán.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Limpiar Logs
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-refresh stats every 30 seconds
+setInterval(function() {
+    fetch('{{ url_for("audit.api_stats") }}')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Stats updated:', data);
+            // Aquí se podrían actualizar los gráficos si los hubiera
+        })
+        .catch(error => {
+            console.error('Error updating stats:', error);
+        });
+}, 30000);
+
+// Confirmation for cleanup
+document.querySelector('#cleanupModal form').addEventListener('submit', function(e) {
+    const days = document.getElementById('days').value;
+    if (!confirm(`¿Estás seguro de que quieres eliminar todos los logs más antiguos que ${days} días?`)) {
+        e.preventDefault();
+    }
+});
+</script>
+{% endblock %}

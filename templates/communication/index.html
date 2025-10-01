@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Comunicación - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Comunicación</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Notificaciones</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Gestiona las notificaciones para los residentes y administradores.</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('communication.notifications') }}" class="btn btn-primary">
+                        <i class="bi bi-bell"></i> Ver notificaciones
+                    </a>
+                    {% if current_user.role in ['admin_general', 'admin_ph'] %}
+                    <a href="{{ url_for('communication.send_notification') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-send"></i> Enviar notificación
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Tickets</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Sistema de tickets para solicitudes, quejas y sugerencias.</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('communication.tickets') }}" class="btn btn-primary">
+                        <i class="bi bi-ticket-detailed"></i> Ver tickets
+                        {% if open_tickets > 0 %}
+                        <span class="badge bg-light text-dark">{{ open_tickets }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('communication.create_ticket') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-plus-circle"></i> Crear ticket
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Anuncios</h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Tablón de anuncios públicos para toda la comunidad.</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('communication.announcements') }}" class="btn btn-primary">
+                        <i class="bi bi-megaphone"></i> Ver anuncios
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if current_user.role in ['admin_general', 'admin_ph'] %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Actividad reciente</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% for notification in recent_notifications[:5] %}
+                    <div class="list-group-item px-0">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ notification.title }}</h6>
+                            <small>{{ notification.created_at|datetime }}</small>
+                        </div>
+                        <p class="mb-1 text-truncate">{{ notification.message }}</p>
+                        <small>Para: {{ notification.user.full_name }}</small>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <p class="text-muted">No hay actividad reciente</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

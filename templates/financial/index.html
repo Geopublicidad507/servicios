@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Finanzas - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Gestión Financiera</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('financial.payments') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-cash"></i> Pagos
+            </a>
+            <a href="{{ url_for('financial.expenses') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-receipt"></i> Gastos
+            </a>
+            <a href="{{ url_for('financial.reports') }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-file-earmark-text"></i> Reportes
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Financial Summary -->
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card border-left-primary h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Ingresos (Mes Actual)</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">${{ total_income }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-cash-stack fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card border-left-danger h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                            Gastos (Mes Actual)</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">${{ total_expenses }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-credit-card fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card border-left-success h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Balance (Mes Actual)</div>
+                        <div class="h5 mb-0 font-weight-bold {{ 'text-success' if net_income >= 0 else 'text-danger' }}">
+                            ${{ net_income }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-bar-chart fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Pagos Recientes</h5>
+                <a href="{{ url_for('financial.add_payment') }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle"></i> Registrar Pago
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Recibo</th>
+                                <th>Unidad</th>
+                                <th>Monto</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in recent_payments %}
+                            <tr>
+                                <td>{{ payment.receipt_number }}</td>
+                                <td>{{ payment.unit.property.code }}-{{ payment.unit.number }}</td>
+                                <td>${{ payment.amount }}</td>
+                                <td>{{ payment.payment_date }}</td>
+                                <td>
+                                    {% if payment.status == 'paid' %}
+                                    <span class="badge bg-success">Pagado</span>
+                                    {% elif payment.status == 'pending' %}
+                                    <span class="badge bg-warning">Pendiente</span>
+                                    {% elif payment.status == 'overdue' %}
+                                    <span class="badge bg-danger">Vencido</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center">No hay pagos recientes</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('financial.payments') }}" class="btn btn-sm btn-outline-primary">Ver todos los pagos</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Gastos Recientes</h5>
+                <a href="{{ url_for('financial.add_expense') }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle"></i> Registrar Gasto
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Categoría</th>
+                                <th>Propiedad</th>
+                                <th>Monto</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for expense in recent_expenses %}
+                            <tr>
+                                <td>{{ expense.category|replace('_', ' ')|title }}</td>
+                                <td>{{ expense.property.name }}</td>
+                                <td>${{ expense.amount }}</td>
+                                <td>{{ expense.expense_date }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center">No hay gastos recientes</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('financial.expenses') }}" class="btn btn-sm btn-outline-primary">Ver todos los gastos</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Overdue Payments -->
+{% if overdue_payments %}
+<div class="card mb-4">
+    <div class="card-header bg-danger text-white">
+        <h5 class="card-title mb-0">Pagos Vencidos</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Recibo</th>
+                        <th>Unidad</th>
+                        <th>Propietario</th>
+                        <th>Monto</th>
+                        <th>Fecha Vencimiento</th>
+                        <th>Días Vencido</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in overdue_payments %}
+                    <tr>
+                        <td>{{ payment.receipt_number }}</td>
+                        <td>{{ payment.unit.property.code }}-{{ payment.unit.number }}</td>
+                        <td>{{ payment.user.full_name }}</td>
+                        <td>${{ payment.amount }}</td>
+                        <td>{{ payment.due_date }}</td>
+                        <td>
+                            {% if payment.due_date %}
+                            {{ (payment.payment_date - payment.due_date).days }}
+                            {% else %}
+                            N/A
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

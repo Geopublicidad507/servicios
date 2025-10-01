@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Anuncios - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Anuncios</h1>
+    {% if current_user.role in ['admin_general', 'admin_ph'] %}
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('communication.send_notification') }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-megaphone"></i> Publicar anuncio
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="row">
+    {% if announcements.items %}
+        {% for announcement in announcements.items %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{{ announcement.title }}</h5>
+                    <small class="text-muted">{{ announcement.created_at|datetime }}</small>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ announcement.message }}</p>
+                </div>
+                {% if announcement.action_url %}
+                <div class="card-footer">
+                    <a href="{{ announcement.action_url }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-link-45deg"></i> Más información
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        
+        <!-- Pagination -->
+        {% if announcements.pages > 1 %}
+        <div class="col-12">
+            <nav aria-label="Paginación de anuncios">
+                <ul class="pagination justify-content-center">
+                    {% if announcements.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('communication.announcements', page=announcements.prev_num) }}">
+                            Anterior
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Anterior</span>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in announcements.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num == announcements.page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('communication.announcements', page=page_num) }}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if announcements.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('communication.announcements', page=announcements.next_num) }}">
+                            Siguiente
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Siguiente</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    {% else %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-megaphone display-1 text-muted"></i>
+                <p class="lead mt-3">No hay anuncios disponibles</p>
+                {% if current_user.role in ['admin_general', 'admin_ph'] %}
+                <a href="{{ url_for('communication.send_notification') }}" class="btn btn-primary mt-2">
+                    <i class="bi bi-megaphone"></i> Publicar anuncio
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

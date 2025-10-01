@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}Búsqueda de Documentos - PH Control{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Búsqueda Avanzada de Documentos</h1>
+        <a href="{{ url_for('documents.index') }}" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver
+        </a>
+    </div>
+
+    <!-- Search Form -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Criterios de Búsqueda</h6>
+        </div>
+        <div class="card-body">
+            <form method="GET" id="searchForm">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="q">Texto a buscar</label>
+                            <input type="text" class="form-control" id="q" name="q" 
+                                   value="{{ query }}" placeholder="Buscar en título y descripción...">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="property_id">Propiedad</label>
+                            <select class="form-control" id="property_id" name="property_id">
+                                <option value="">Todas las propiedades</option>
+                                {% for property in properties %}
+                                <option value="{{ property.id }}" 
+                                        {{ 'selected' if filters.property_id == property.id }}>
+                                    {{ property.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="document_type">Tipo de Documento</label>
+                            <select class="form-control" id="document_type" name="document_type">
+                                <option value="">Todos los tipos</option>
+                                <option value="contract" {{ 'selected' if filters.document_type == 'contract' }}>Contrato</option>
+                                <option value="act" {{ 'selected' if filters.document_type == 'act' }}>Acta</option>
+                                <option value="regulation" {{ 'selected' if filters.document_type == 'regulation' }}>Reglamento</option>
+                                <option value="plan" {{ 'selected' if filters.document_type == 'plan' }}>Plano</option>
+                                <option value="report" {{ 'selected' if filters.document_type == 'report' }}>Reporte</option>
+                                <option value="other" {{ 'selected' if filters.document_type == 'other' }}>Otro</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="date_from">Fecha Desde</label>
+                            <input type="date" class="form-control" id="date_from" name="date_from" 
+                                   value="{{ filters.date_from or '' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="date_to">Fecha Hasta</label>
+                            <input type="date" class="form-control" id="date_to" name="date_to" 
+                                   value="{{ filters.date_to or '' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search mr-2"></i> Buscar
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="clearForm()">
+                        <i class="fas fa-times mr-2"></i> Limpiar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search Results -->
+    {% if query or filters.property_id or filters.document_type or filters.date_from or filters.date_to %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                Resultados de Búsqueda ({{ documents|length }} documento{{ 's' if documents|length != 1 else '' }})
+            </h6>
+        </div>
+        <div class="card-body">
+            {% if documents %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Título</th>
+                                <th>Tipo</th>
+                                <th>Propiedad</th>
+                                <th>Fecha</th>
+                                <th>Tamaño</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for document in documents %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if document.document_type == 'contract' %}
+                                            <i class="fas fa-file-contract text-primary mr-2"></i>
+                                        {% elif document.document_type == 'act' %}
+                                            <i class="fas fa-file-signature text-success mr-2"></i>
+                                        {% elif document.document_type == 'regulation' %}
+                                            <i class="fas fa-gavel text-warning mr-2"></i>
+                                        {% elif document.document_type == 'plan' %}
+                                            <i class="fas fa-drafting-compass text-info mr-2"></i>
+                                        {% elif document.document_type == 'report' %}
+                                            <i class="fas fa-chart-bar text-success mr-2"></i>
+                                        {% else %}
+                                            <i class="fas fa-file-alt text-secondary mr-2"></i>
+                                        {% endif %}
+                                        <div>
+                                            <strong>{{ document.title }}</strong>
+                                            {% if document.description %}
+                                                <br><small class="text-muted">{{ document.description[:100] }}{{ '...' if document.description|length > 100 else '' }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge badge-secondary">
+                                        {{ document.document_type.replace('_', ' ').title() }}
+                                    </span>
+                                </td>
+                                <td>{{ document.property.name }}</td>
+                                <td>{{ document.created_at|date }}</td>
+                                <td>
+                                    {% if document.file_size %}
+                                        {% set size_mb = (document.file_size / 1024 / 1024) %}
+                                        {% if size_mb >= 1 %}
+                                            {{ "%.1f"|format(size_mb) }} MB
+                                        {% else %}
+                                            {{ "%.0f"|format(document.file_size / 1024) }} KB
+                                        {% endif %}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('documents.view', document_id=document.id) }}" 
+                                           class="btn btn-info btn-sm" title="Ver">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('documents.download', document_id=document.id) }}" 
+                                           class="btn btn-success btn-sm" title="Descargar">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                        {% if current_user.role in ['admin_general', 'admin_ph'] %}
+                                        <a href="{{ url_for('documents.edit', document_id=document.id) }}" 
+                                           class="btn btn-warning btn-sm" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-search fa-3x text-gray-300 mb-3"></i>
+                    <h5 class="text-gray-500">No se encontraron documentos</h5>
+                    <p class="text-gray-400">Intenta modificar los criterios de búsqueda.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <!-- Search Tips -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Consejos de Búsqueda</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6><i class="fas fa-lightbulb text-warning mr-2"></i>Búsqueda por Texto</h6>
+                    <ul class="text-muted">
+                        <li>Busca en títulos y descripciones de documentos</li>
+                        <li>No distingue entre mayúsculas y minúsculas</li>
+                        <li>Puedes usar palabras parciales</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6><i class="fas fa-filter text-info mr-2"></i>Filtros Avanzados</h6>
+                    <ul class="text-muted">
+                        <li>Combina múltiples criterios para mejores resultados</li>
+                        <li>Usa rangos de fechas para documentos específicos</li>
+                        <li>Filtra por tipo de documento para búsquedas precisas</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function clearForm() {
+    document.getElementById('searchForm').reset();
+    // Clear URL parameters
+    window.location.href = window.location.pathname;
+}
+
+// Auto-submit form when filters change (optional)
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('searchForm');
+    const inputs = form.querySelectorAll('select');
+    
+    inputs.forEach(input => {
+        input.addEventListener('change', function() {
+            // Optional: auto-submit when filters change
+            // form.submit();
+        });
+    });
+});
+</script>
+{% endblock %}

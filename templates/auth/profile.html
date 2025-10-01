@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Perfil - PH Control{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="bi bi-person-circle"></i> Mi Perfil</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="first_name" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" 
+                                   value="{{ current_user.first_name }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="last_name" class="form-label">Apellido</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" 
+                                   value="{{ current_user.last_name }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" value="{{ current_user.email }}" disabled>
+                        <div class="form-text">El email no se puede cambiar. Contacta al administrador si necesitas modificarlo.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Teléfono</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" 
+                               value="{{ current_user.phone or '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Rol</label>
+                        <input type="text" class="form-control" value="{{ current_user.role.replace('_', ' ').title() }}" disabled>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de Registro</label>
+                        <input type="text" class="form-control" value="{{ current_user.created_at.strftime('%d/%m/%Y %H:%M') }}" disabled>
+                    </div>
+                    
+                    {% if current_user.last_login %}
+                    <div class="mb-3">
+                        <label class="form-label">Último Acceso</label>
+                        <input type="text" class="form-control" value="{{ current_user.last_login.strftime('%d/%m/%Y %H:%M') }}" disabled>
+                    </div>
+                    {% endif %}
+                    
+                    <hr>
+                    
+                    <h5>Cambiar Contraseña</h5>
+                    <p class="text-muted">Deja estos campos vacíos si no deseas cambiar tu contraseña.</p>
+                    
+                    <div class="mb-3">
+                        <label for="current_password" class="form-label">Contraseña Actual</label>
+                        <input type="password" class="form-control" id="current_password" name="current_password">
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="new_password" class="form-label">Nueva Contraseña</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" minlength="6">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="confirm_password" class="form-label">Confirmar Nueva Contraseña</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Actualizar Perfil
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        {% if current_user.role == 'resident' %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5><i class="bi bi-house"></i> Mis Unidades</h5>
+            </div>
+            <div class="card-body">
+                {% if current_user.units %}
+                <div class="row">
+                    {% for unit in current_user.units %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-primary">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ unit.unit_identifier }}</h6>
+                                <p class="card-text">
+                                    <strong>Propiedad:</strong> {{ unit.property.name }}<br>
+                                    <strong>Tipo:</strong> {{ unit.unit_type.title() }}<br>
+                                    <strong>Cuota Mensual:</strong> ${{ "%.2f"|format(unit.monthly_fee) }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    No tienes unidades asignadas. Contacta al administrador para que te asigne a una unidad.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPassword = document.getElementById('current_password');
+    const newPassword = document.getElementById('new_password');
+    const confirmPassword = document.getElementById('confirm_password');
+    
+    function validatePasswords() {
+        // If any password field has content, all should be required
+        const hasPasswordContent = currentPassword.value || newPassword.value || confirmPassword.value;
+        
+        if (hasPasswordContent) {
+            currentPassword.required = true;
+            newPassword.required = true;
+            confirmPassword.required = true;
+        } else {
+            currentPassword.required = false;
+            newPassword.required = false;
+            confirmPassword.required = false;
+        }
+        
+        // Check if new passwords match
+        if (newPassword.value !== confirmPassword.value) {
+            confirmPassword.setCustomValidity('Las contraseñas no coinciden');
+        } else {
+            confirmPassword.setCustomValidity('');
+        }
+    }
+    
+    currentPassword.addEventListener('input', validatePasswords);
+    newPassword.addEventListener('input', validatePasswords);
+    confirmPassword.addEventListener('input', validatePasswords);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Cumplimiento Legal - PH Control{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Cumplimiento Legal - Ley 284</h1>
+        <a href="{{ url_for('legal.templates') }}" class="btn btn-info btn-sm">
+            <i class="fas fa-file-alt fa-sm text-white-50"></i> Plantillas Legales
+        </a>
+    </div>
+
+    <!-- Compliance Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Estado de Cumplimiento por Propiedad</h6>
+                </div>
+                <div class="card-body">
+                    {% for item in compliance_items %}
+                    <div class="row mb-4 p-3 border rounded">
+                        <div class="col-md-8">
+                            <h5 class="mb-2">{{ item.property.name }}</h5>
+                            <p class="text-muted mb-3">{{ item.property.address }}</p>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center mb-2">
+                                        {% if item.annual_assembly %}
+                                            <i class="fas fa-check-circle text-success mr-2"></i>
+                                        {% else %}
+                                            <i class="fas fa-times-circle text-danger mr-2"></i>
+                                        {% endif %}
+                                        <span>Asamblea Anual</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center mb-2">
+                                        {% if item.regulations %}
+                                            <i class="fas fa-check-circle text-success mr-2"></i>
+                                        {% else %}
+                                            <i class="fas fa-times-circle text-danger mr-2"></i>
+                                        {% endif %}
+                                        <span>Reglamentos</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center mb-2">
+                                        {% if item.financial_reports %}
+                                            <i class="fas fa-check-circle text-success mr-2"></i>
+                                        {% else %}
+                                            <i class="fas fa-times-circle text-danger mr-2"></i>
+                                        {% endif %}
+                                        <span>Reportes Financieros</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="mb-2">
+                                <h6>Puntuación de Cumplimiento</h6>
+                            </div>
+                            <div class="progress mb-2" style="height: 20px;">
+                                {% set score = item.compliance_score %}
+                                {% if score >= 80 %}
+                                    {% set color = 'success' %}
+                                {% elif score >= 60 %}
+                                    {% set color = 'warning' %}
+                                {% else %}
+                                    {% set color = 'danger' %}
+                                {% endif %}
+                                <div class="progress-bar bg-{{ color }}" style="width: {{ score }}%">
+                                    {{ "%.0f"|format(score) }}%
+                                </div>
+                            </div>
+                            <small class="text-muted">
+                                {% if score >= 80 %}
+                                    Excelente cumplimiento
+                                {% elif score >= 60 %}
+                                    Cumplimiento parcial
+                                {% else %}
+                                    Requiere atención
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Legal Requirements Checklist -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Requisitos de la Ley 284</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Asamblea Ordinaria Anual</h6>
+                                <small class="text-success">Obligatorio</small>
+                            </div>
+                            <p class="mb-1">Debe realizarse al menos una asamblea ordinaria por año para aprobar presupuestos y estados financieros.</p>
+                            <small>Art. 15 - Ley 284</small>
+                        </div>
+                        
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Reglamento Interno</h6>
+                                <small class="text-warning">Recomendado</small>
+                            </div>
+                            <p class="mb-1">Establecer normas internas de convivencia y administración de la propiedad horizontal.</p>
+                            <small>Art. 8 - Ley 284</small>
+                        </div>
+                        
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Estados Financieros</h6>
+                                <small class="text-success">Obligatorio</small>
+                            </div>
+                            <p class="mb-1">Presentación anual de estados financieros auditados o revisados por contador público autorizado.</p>
+                            <small>Art. 16 - Ley 284</small>
+                        </div>
+                        
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Libro de Actas</h6>
+                                <small class="text-success">Obligatorio</small>
+                            </div>
+                            <p class="mb-1">Mantener registro de todas las asambleas y decisiones tomadas por los copropietarios.</p>
+                            <small>Art. 17 - Ley 284</small>
+                        </div>
+                        
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Presupuesto Anual</h6>
+                                <small class="text-success">Obligatorio</small>
+                            </div>
+                            <p class="mb-1">Elaboración y aprobación del presupuesto anual de gastos comunes.</p>
+                            <small>Art. 14 - Ley 284</small>
+                        </div>
+                        
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Seguro de la Edificación</h6>
+                                <small class="text-success">Obligatorio</small>
+                            </div>
+                            <p class="mb-1">Mantener seguro contra incendio y otros riesgos sobre las áreas comunes.</p>
+                            <small>Art. 12 - Ley 284</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Acciones Rápidas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <a href="{{ url_for('legal.create_assembly') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-plus text-primary mr-2"></i>
+                            Programar Asamblea
+                        </a>
+                        <a href="{{ url_for('documents.index') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-file-upload text-info mr-2"></i>
+                            Subir Documentos
+                        </a>
+                        <a href="{{ url_for('financial.reports') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-chart-bar text-success mr-2"></i>
+                            Generar Reportes
+                        </a>
+                        <a href="{{ url_for('legal.templates') }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-file-alt text-warning mr-2"></i>
+                            Plantillas Legales
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compliance Tips -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Consejos de Cumplimiento</h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-lightbulb mr-2"></i>Tip Legal</h6>
+                        <p class="mb-0">Mantenga siempre copias digitales y físicas de todas las actas de asambleas. Son documentos legales importantes.</p>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle mr-2"></i>Recordatorio</h6>
+                        <p class="mb-0">Las asambleas ordinarias deben realizarse dentro de los primeros 4 meses del año.</p>
+                    </div>
+                    
+                    <div class="alert alert-success">
+                        <h6><i class="fas fa-check mr-2"></i>Buena Práctica</h6>
+                        <p class="mb-0">Envíe las convocatorias con al menos 8 días de anticipación para cumplir con los plazos legales.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

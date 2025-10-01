@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Tarea de Mantenimiento - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Crear Tarea de Mantenimiento</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('maintenance.tasks') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a tareas
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="property_id" class="form-label">Propiedad *</label>
+                    <select name="property_id" id="property_id" class="form-select" required>
+                        <option value="">Seleccione una propiedad</option>
+                        {% for property in properties %}
+                        <option value="{{ property.id }}">{{ property.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="task_type" class="form-label">Tipo de Tarea *</label>
+                    <select name="task_type" id="task_type" class="form-select" required>
+                        <option value="">Seleccione un tipo</option>
+                        <option value="preventive">Preventivo</option>
+                        <option value="corrective">Correctivo</option>
+                        <option value="emergency">Emergencia</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="title" class="form-label">Título *</label>
+                <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="description" class="form-label">Descripción</label>
+                <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="priority" class="form-label">Prioridad</label>
+                    <select name="priority" id="priority" class="form-select">
+                        <option value="low">Baja</option>
+                        <option value="medium" selected>Media</option>
+                        <option value="high">Alta</option>
+                        <option value="urgent">Urgente</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="assigned_to" class="form-label">Asignado a</label>
+                    <input type="text" class="form-control" id="assigned_to" name="assigned_to" placeholder="Nombre del proveedor o técnico">
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="scheduled_date" class="form-label">Fecha Programada</label>
+                    <input type="date" class="form-control" id="scheduled_date" name="scheduled_date">
+                </div>
+                <div class="col-md-6">
+                    <label for="estimated_cost" class="form-label">Costo Estimado</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" class="form-control" id="estimated_cost" name="estimated_cost" step="0.01" min="0">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="button" class="btn btn-outline-secondary" onclick="history.back()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Crear Tarea</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default date to tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('scheduled_date').valueAsDate = tomorrow;
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Documento - PH Control{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Editar Documento</h1>
+        <a href="{{ url_for('documents.view', document_id=document.id) }}" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Edit Form -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Información del Documento</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="form-group">
+                            <label for="title">Título *</label>
+                            <input type="text" class="form-control" id="title" name="title" 
+                                   value="{{ document.title }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">Descripción</label>
+                            <textarea class="form-control" id="description" name="description" 
+                                      rows="3">{{ document.description or '' }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="document_type">Tipo de Documento *</label>
+                                    <select class="form-control" id="document_type" name="document_type" required>
+                                        <option value="contract" {{ 'selected' if document.document_type == 'contract' }}>Contrato</option>
+                                        <option value="act" {{ 'selected' if document.document_type == 'act' }}>Acta</option>
+                                        <option value="regulation" {{ 'selected' if document.document_type == 'regulation' }}>Reglamento</option>
+                                        <option value="plan" {{ 'selected' if document.document_type == 'plan' }}>Plano</option>
+                                        <option value="report" {{ 'selected' if document.document_type == 'report' }}>Reporte</option>
+                                        <option value="other" {{ 'selected' if document.document_type == 'other' }}>Otro</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="version">Versión</label>
+                                    <input type="text" class="form-control" id="version" name="version" 
+                                           value="{{ document.version }}" placeholder="1.0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="is_public" name="is_public" 
+                                       {{ 'checked' if document.is_public }}>
+                                <label class="form-check-label" for="is_public">
+                                    Documento público (visible para todos los residentes)
+                                </label>
+                            </div>
+                            <small class="form-text text-muted">
+                                Los documentos privados solo son visibles para administradores.
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save mr-2"></i> Guardar Cambios
+                            </button>
+                            <a href="{{ url_for('documents.view', document_id=document.id) }}" 
+                               class="btn btn-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Document Info -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Información del Archivo</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        {% if document.document_type == 'contract' %}
+                            <i class="fas fa-file-contract fa-3x text-primary"></i>
+                        {% elif document.document_type == 'act' %}
+                            <i class="fas fa-file-signature fa-3x text-success"></i>
+                        {% elif document.document_type == 'regulation' %}
+                            <i class="fas fa-gavel fa-3x text-warning"></i>
+                        {% elif document.document_type == 'plan' %}
+                            <i class="fas fa-drafting-compass fa-3x text-info"></i>
+                        {% elif document.document_type == 'report' %}
+                            <i class="fas fa-chart-bar fa-3x text-success"></i>
+                        {% else %}
+                            <i class="fas fa-file-alt fa-3x text-secondary"></i>
+                        {% endif %}
+                    </div>
+
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Propiedad:</strong></td>
+                            <td>{{ document.property.name }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tamaño:</strong></td>
+                            <td>
+                                {% if document.file_size %}
+                                    {% set size_mb = (document.file_size / 1024 / 1024) %}
+                                    {% if size_mb >= 1 %}
+                                        {{ "%.1f"|format(size_mb) }} MB
+                                    {% else %}
+                                        {{ "%.0f"|format(document.file_size / 1024) }} KB
+                                    {% endif %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tipo MIME:</strong></td>
+                            <td>{{ document.mime_type or 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Subido por:</strong></td>
+                            <td>
+                                {% if document.uploaded_by %}
+                                    {{ User.query.get(document.uploaded_by).full_name }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Fecha:</strong></td>
+                            <td>{{ document.created_at|datetime }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Visibilidad:</strong></td>
+                            <td>
+                                {% if document.is_public %}
+                                    <span class="badge badge-success">Público</span>
+                                {% else %}
+                                    <span class="badge badge-warning">Privado</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Acciones</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <a href="{{ url_for('documents.view', document_id=document.id) }}" 
+                           class="list-group-item list-group-item-action">
+                            <i class="fas fa-eye text-info mr-2"></i>
+                            Ver Documento
+                        </a>
+                        <a href="{{ url_for('documents.download', document_id=document.id) }}" 
+                           class="list-group-item list-group-item-action">
+                            <i class="fas fa-download text-success mr-2"></i>
+                            Descargar Archivo
+                        </a>
+                        <a href="{{ url_for('documents.index') }}" 
+                           class="list-group-item list-group-item-action">
+                            <i class="fas fa-list text-secondary mr-2"></i>
+                            Ver Todos los Documentos
+                        </a>
+                        <button class="list-group-item list-group-item-action text-danger" 
+                                onclick="confirmDelete()">
+                            <i class="fas fa-trash mr-2"></i>
+                            Eliminar Documento
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar este documento?</p>
+                <p><strong>{{ document.title }}</strong></p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    Esta acción no se puede deshacer. El archivo se eliminará permanentemente.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" onclick="deleteDocument()">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDelete() {
+    $('#deleteModal').modal('show');
+}
+
+function deleteDocument() {
+    fetch(`/documents/{{ document.id }}/delete`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.href = '/documents/';
+        } else {
+            alert('Error al eliminar el documento');
+        }
+    })
+    .catch(error => {
+        alert('Error al eliminar el documento');
+    });
+}
+</script>
+{% endblock %}

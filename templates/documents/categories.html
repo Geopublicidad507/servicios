@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}Categorías de Documentos - PH Control{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Categorías de Documentos</h1>
+        <a href="{{ url_for('documents.upload') }}" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus fa-sm text-white-50"></i> Subir Documento
+        </a>
+    </div>
+
+    <!-- Categories Overview -->
+    <div class="row">
+        {% for category in category_stats %}
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                {{ category.display_name }}
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ category.count }}
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                documento{{ 's' if category.count != 1 else '' }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            {% if category.name == 'contract' %}
+                                <i class="fas fa-file-contract fa-2x text-gray-300"></i>
+                            {% elif category.name == 'act' %}
+                                <i class="fas fa-file-signature fa-2x text-gray-300"></i>
+                            {% elif category.name == 'regulation' %}
+                                <i class="fas fa-gavel fa-2x text-gray-300"></i>
+                            {% elif category.name == 'plan' %}
+                                <i class="fas fa-drafting-compass fa-2x text-gray-300"></i>
+                            {% elif category.name == 'report' %}
+                                <i class="fas fa-chart-bar fa-2x text-gray-300"></i>
+                            {% else %}
+                                <i class="fas fa-file-alt fa-2x text-gray-300"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('documents.index', document_type=category.name) }}" 
+                           class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-eye mr-1"></i> Ver Documentos
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Category Details -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Descripción de Categorías</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-4">
+                        <h6><i class="fas fa-file-contract text-primary mr-2"></i>Contratos</h6>
+                        <p class="text-muted mb-2">Contratos de administración, servicios, proveedores y otros acuerdos legales.</p>
+                        <small class="text-info">Ejemplos: Contrato de administración, contratos de limpieza, seguridad, etc.</small>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6><i class="fas fa-file-signature text-success mr-2"></i>Actas</h6>
+                        <p class="text-muted mb-2">Actas de asambleas ordinarias, extraordinarias y reuniones administrativas.</p>
+                        <small class="text-info">Ejemplos: Actas de asamblea anual, actas de junta directiva, etc.</small>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6><i class="fas fa-gavel text-warning mr-2"></i>Reglamentos</h6>
+                        <p class="text-muted mb-2">Reglamentos internos, normas de convivencia y disposiciones legales.</p>
+                        <small class="text-info">Ejemplos: Reglamento interno, normas de uso de áreas comunes, etc.</small>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-4">
+                        <h6><i class="fas fa-drafting-compass text-info mr-2"></i>Planos</h6>
+                        <p class="text-muted mb-2">Planos arquitectónicos, técnicos y de distribución de la propiedad.</p>
+                        <small class="text-info">Ejemplos: Planos de construcción, planos de evacuación, etc.</small>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6><i class="fas fa-chart-bar text-success mr-2"></i>Reportes</h6>
+                        <p class="text-muted mb-2">Reportes financieros, estados de cuenta y documentos contables.</p>
+                        <small class="text-info">Ejemplos: Estados financieros, presupuestos, balances, etc.</small>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6><i class="fas fa-file-alt text-secondary mr-2"></i>Otros</h6>
+                        <p class="text-muted mb-2">Documentos diversos que no encajan en las categorías anteriores.</p>
+                        <small class="text-info">Ejemplos: Correspondencia, certificados, pólizas de seguro, etc.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Acciones Rápidas</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <a href="{{ url_for('documents.upload') }}" class="btn btn-primary btn-block">
+                        <i class="fas fa-upload mr-2"></i>
+                        Subir Documento
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{{ url_for('documents.search') }}" class="btn btn-info btn-block">
+                        <i class="fas fa-search mr-2"></i>
+                        Búsqueda Avanzada
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{{ url_for('documents.index') }}" class="btn btn-success btn-block">
+                        <i class="fas fa-list mr-2"></i>
+                        Ver Todos
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-warning btn-block" onclick="generateReport()">
+                        <i class="fas fa-file-pdf mr-2"></i>
+                        Reporte PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Chart -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Distribución por Categoría</h6>
+        </div>
+        <div class="card-body">
+            <div class="chart-pie pt-4 pb-2">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Category distribution chart
+const ctx = document.getElementById('categoryChart').getContext('2d');
+const categoryData = {{ category_stats|tojson }};
+
+const labels = categoryData.map(cat => cat.display_name);
+const data = categoryData.map(cat => cat.count);
+const colors = [
+    '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796'
+];
+
+new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: labels,
+        datasets: [{
+            data: data,
+            backgroundColor: colors,
+            hoverBackgroundColor: colors.map(color => color + 'CC'),
+            hoverBorderColor: "rgba(234, 236, 244, 1)",
+        }],
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+            }
+        },
+        cutout: '80%',
+    },
+});
+
+function generateReport() {
+    // Simulate report generation
+    showAlert('info', 'Generando reporte de categorías...');
+    
+    setTimeout(() => {
+        showAlert('success', 'Reporte generado exitosamente');
+    }, 2000);
+}
+
+function showAlert(type, message) {
+    const alertClass = type === 'success' ? 'alert-success' : type === 'info' ? 'alert-info' : 'alert-danger';
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    container.insertAdjacentHTML('afterbegin', alertHtml);
+    
+    setTimeout(() => {
+        const alert = container.querySelector('.alert');
+        if (alert) {
+            alert.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

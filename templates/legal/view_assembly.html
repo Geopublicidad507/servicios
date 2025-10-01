@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}{{ assembly.title }} - PH Control{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{{ assembly.title }}</h1>
+        <div>
+            <a href="{{ url_for('legal.edit_assembly', assembly_id=assembly.id) }}" 
+               class="btn btn-warning btn-sm">
+                <i class="fas fa-edit fa-sm text-white-50"></i> Editar
+            </a>
+            <a href="{{ url_for('legal.generate_convocation', assembly_id=assembly.id) }}" 
+               class="btn btn-info btn-sm">
+                <i class="fas fa-file-pdf fa-sm text-white-50"></i> Convocatoria
+            </a>
+            {% if assembly.minutes %}
+            <a href="{{ url_for('legal.generate_minutes', assembly_id=assembly.id) }}" 
+               class="btn btn-success btn-sm">
+                <i class="fas fa-file-pdf fa-sm text-white-50"></i> Acta
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Assembly Details -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Detalles de la Asamblea</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Propiedad:</strong> {{ assembly.property.name }}</p>
+                            <p><strong>Tipo:</strong> {{ assembly.assembly_type|title }}</p>
+                            <p><strong>Estado:</strong> {{ assembly.status|status_badge|safe }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Fecha:</strong> {{ assembly.scheduled_date|datetime }}</p>
+                            <p><strong>Ubicación:</strong> {{ assembly.location or 'No especificada' }}</p>
+                            <p><strong>Quórum Requerido:</strong> {{ assembly.quorum_required }}%</p>
+                        </div>
+                    </div>
+                    
+                    {% if assembly.description %}
+                    <div class="mt-3">
+                        <h6>Descripción:</h6>
+                        <p>{{ assembly.description }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if assembly.agenda %}
+                    <div class="mt-3">
+                        <h6>Orden del Día:</h6>
+                        <pre class="bg-light p-3 rounded">{{ assembly.agenda }}</pre>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Minutes Section -->
+            {% if assembly.minutes %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Acta de la Asamblea</h6>
+                </div>
+                <div class="card-body">
+                    <pre class="bg-light p-3 rounded">{{ assembly.minutes }}</pre>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Status Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Estado Actual</h6>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        {{ assembly.status|status_badge|safe }}
+                    </div>
+                    
+                    {% if assembly.quorum_achieved %}
+                    <div class="mb-3">
+                        <h6>Quórum Logrado</h6>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" style="width: {{ assembly.quorum_achieved }}%">
+                                {{ assembly.quorum_achieved }}%
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            Creada el {{ assembly.created_at|datetime }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Acciones Rápidas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <a href="{{ url_for('legal.generate_convocation', assembly_id=assembly.id) }}" 
+                           class="list-group-item list-group-item-action">
+                            <i class="fas fa-file-pdf text-info mr-2"></i>
+                            Descargar Convocatoria
+                        </a>
+                        
+                        {% if assembly.minutes %}
+                        <a href="{{ url_for('legal.generate_minutes', assembly_id=assembly.id) }}" 
+                           class="list-group-item list-group-item-action">
+                            <i class="fas fa-file-pdf text-success mr-2"></i>
+                            Descargar Acta
+                        </a>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('legal.edit_assembly', assembly_id=assembly.id) }}" 
+                           class="list-group-item list-group-item-action">
+                            <i class="fas fa-edit text-warning mr-2"></i>
+                            Editar Asamblea
+                        </a>
+                        
+                        <a href="{{ url_for('legal.assemblies') }}" 
+                           class="list-group-item list-group-item-action">
+                            <i class="fas fa-list text-secondary mr-2"></i>
+                            Ver Todas las Asambleas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

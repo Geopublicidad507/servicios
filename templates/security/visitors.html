@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Registro de Visitantes - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Registro de Visitantes</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('security.register_visitor') }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle"></i> Registrar Visitante
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" action="{{ url_for('security.visitors') }}" class="row g-3">
+            <div class="col-md-3">
+                <label for="date_from" class="form-label">Desde</label>
+                <input type="date" class="form-control" id="date_from" name="date_from" value="{{ filters.date_from or '' }}">
+            </div>
+            <div class="col-md-3">
+                <label for="date_to" class="form-label">Hasta</label>
+                <input type="date" class="form-control" id="date_to" name="date_to" value="{{ filters.date_to or '' }}">
+            </div>
+            <div class="col-md-2">
+                <label for="unit_visited" class="form-label">Unidad</label>
+                <input type="text" class="form-control" id="unit_visited" name="unit_visited" value="{{ filters.unit_visited or '' }}" placeholder="Ej: 101">
+            </div>
+            <div class="col-md-2">
+                <label for="status" class="form-label">Estado</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="active" {% if filters.status == 'active' %}selected{% endif %}>Activos</option>
+                    <option value="exited" {% if filters.status == 'exited' %}selected{% endif %}>Salieron</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-filter"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Visitors List -->
+<div class="card">
+    <div class="card-body">
+        {% if visitors.items %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Documento</th>
+                        <th>Unidad Visitada</th>
+                        <th>Entrada</th>
+                        <th>Salida</th>
+                        <th>Duración</th>
+                        <th>Autorizado por</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for visitor in visitors.items %}
+                    <tr>
+                        <td>{{ visitor.visitor_name }}</td>
+                        <td>{{ visitor.visitor_id or 'N/A' }}</td>
+                        <td>{{ visitor.unit_visited }}</td>
+                        <td>{{ visitor.entry_time|datetime }}</td>
+                        <td>
+                            {% if visitor.exit_time %}
+                            {{ visitor.exit_time|datetime }}
+                            {% else %}
+                            <span class="badge bg-success">Activo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if visitor.exit_time %}
+                            {{ ((visitor.exit_time - visitor.entry_time).total_seconds() / 3600)|round(1) }} horas
+                            {% else %}
+                            En curso
+                            {% endif %}
+                        </td>
+                        <td>{{ visitor.authorized_by or 'N/A' }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                {% if not visitor.exit_time %}
+                                <button class="btn btn-sm btn-outline-danger" onclick="registerExit({{ visitor.id }})">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                </button>
+                                {% endif %}
+                                <a href="{{ url_for('security.edit_visitor_log', log_id=visitor.id) }}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if visitors.pages > 1 %}
+        <nav aria-label="Paginación de visitantes">
+            <ul class="pagination justify-content-center">
+                {% if visitors.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('security.visitors', page=visitors.prev_num, date_from=filters.date_from, date_to=filters.date_to, unit_visited=filters.unit_visited, status=filters.status) }}">
+                        Anterior
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Anterior</span>
+                </li>
+                {% endif %}
+                
+                {% for page_num in visitors.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        {% if page_num == visitors.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('security.visitors', page=page_num, date_from=filters.date_from, date_to=filters.date_to, unit_visited=filters.unit_visited, status=filters.status) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if visitors.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('security.visitors', page=visitors.next_num, date_from=filters.date_from, date_to=filters.date_to, unit_visited=filters.unit_visited, status=filters.status) }}">
+                        Siguiente
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Siguiente</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-people display-1 text-muted"></i>
+            <p class="lead mt-3">No se encontraron registros de visitantes</p>
+            <a href="{{ url_for('security.register_visitor') }}" class="btn btn-primary mt-2">
+                <i class="bi bi-plus-circle"></i> Registrar primer visitante
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function registerExit(visitorId) {
+        if (confirm('¿Confirmar la salida de este visitante?')) {
+            fetch(`/security/visitors/${visitorId}/exit`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al registrar la salida');
+            });
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default dates
+        const today = new Date();
+        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+        
+        if (!document.getElementById('date_from').value) {
+            document.getElementById('date_from').valueAsDate = weekAgo;
+        }
+        if (!document.getElementById('date_to').value) {
+            document.getElementById('date_to').valueAsDate = today;
+        }
+    });
+</script>
+{% endblock %}

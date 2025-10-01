@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Usuario - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Editar Usuario</h1>
+        <a href="{{ url_for('admin.view_user', user_id=user.id) }}" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Información del Usuario</h6>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="first_name">Nombre *</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" 
+                                   value="{{ user.first_name }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="last_name">Apellido *</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" 
+                                   value="{{ user.last_name }}" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ user.email }}" readonly>
+                            <small class="form-text text-muted">El email no se puede modificar</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="phone">Teléfono</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                   value="{{ user.phone or '' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="role">Rol *</label>
+                            <select class="form-control" id="role" name="role" required>
+                                <option value="admin_general" {{ 'selected' if user.role == 'admin_general' }}>
+                                    Administrador General
+                                </option>
+                                <option value="admin_ph" {{ 'selected' if user.role == 'admin_ph' }}>
+                                    Administrador PH
+                                </option>
+                                <option value="resident" {{ 'selected' if user.role == 'resident' }}>
+                                    Residente
+                                </option>
+                                <option value="provider" {{ 'selected' if user.role == 'provider' }}>
+                                    Proveedor
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="is_active">Estado</label>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="is_active" name="is_active" 
+                                       {{ 'checked' if user.is_active }}>
+                                <label class="form-check-label" for="is_active">
+                                    Usuario activo
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="new_password">Nueva Contraseña</label>
+                    <input type="password" class="form-control" id="new_password" name="new_password">
+                    <small class="form-text text-muted">Dejar en blanco para mantener la contraseña actual</small>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-2"></i> Guardar Cambios
+                    </button>
+                    <a href="{{ url_for('admin.view_user', user_id=user.id) }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

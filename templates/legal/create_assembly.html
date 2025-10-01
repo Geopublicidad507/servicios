@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Asamblea - PH Control{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Nueva Asamblea</h1>
+        <a href="{{ url_for('legal.assemblies') }}" class="btn btn-secondary btn-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Información de la Asamblea</h6>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="property_id">Propiedad *</label>
+                            <select class="form-control" id="property_id" name="property_id" required>
+                                <option value="">Seleccionar propiedad...</option>
+                                {% for property in properties %}
+                                <option value="{{ property.id }}">{{ property.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="assembly_type">Tipo de Asamblea *</label>
+                            <select class="form-control" id="assembly_type" name="assembly_type" required>
+                                <option value="ordinary">Ordinaria</option>
+                                <option value="extraordinary">Extraordinaria</option>
+                                <option value="emergency">Emergencia</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="title">Título *</label>
+                    <input type="text" class="form-control" id="title" name="title" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Descripción</label>
+                    <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="scheduled_date">Fecha *</label>
+                            <input type="date" class="form-control" id="scheduled_date" name="scheduled_date" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="scheduled_time">Hora *</label>
+                            <input type="time" class="form-control" id="scheduled_time" name="scheduled_time" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="location">Ubicación</label>
+                    <input type="text" class="form-control" id="location" name="location" 
+                           placeholder="Ej: Salón comunal, Área de piscina">
+                </div>
+
+                <div class="form-group">
+                    <label for="quorum_required">Quórum Requerido (%)</label>
+                    <input type="number" class="form-control" id="quorum_required" name="quorum_required" 
+                           value="50" min="1" max="100">
+                </div>
+
+                <div class="form-group">
+                    <label for="agenda">Orden del Día</label>
+                    <textarea class="form-control" id="agenda" name="agenda" rows="5" 
+                              placeholder="1. Verificación del quórum&#10;2. Lectura y aprobación del acta anterior&#10;3. Informe del administrador&#10;4. Estados financieros&#10;5. Varios"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-2"></i> Crear Asamblea
+                    </button>
+                    <a href="{{ url_for('legal.assemblies') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Balance General - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Balance General</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('financial.reports') }}" class="btn btn-sm btn-outline-secondary me-2">
+            <i class="bi bi-arrow-left"></i> Volver a reportes
+        </a>
+        <a href="{{ url_for('financial.balance_sheet', property_id=request.args.get('property_id'), date=report_date, format='pdf') }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">Balance General - {{ report_date }}</h5>
+    </div>
+    <div class="card-body">
+        {% if properties %}
+        <div class="mb-3">
+            <strong>Propiedades:</strong> {{ ', '.join(properties) }}
+        </div>
+        {% endif %}
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">Activos</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <td>Efectivo</td>
+                                    <td class="text-end">${{ assets.cash|round(2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Cuentas por Cobrar</td>
+                                    <td class="text-end">${{ assets.accounts_receivable|round(2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Activos Fijos</td>
+                                    <td class="text-end">${{ assets.fixed_assets|round(2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Otros Activos</td>
+                                    <td class="text-end">${{ assets.other_assets|round(2) }}</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-success">
+                                    <th>TOTAL ACTIVOS</th>
+                                    <th class="text-end">${{ total_assets|round(2) }}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="card-title mb-0">Pasivos</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <td>Cuentas por Pagar</td>
+                                    <td class="text-end">${{ liabilities.accounts_payable|round(2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Préstamos</td>
+                                    <td class="text-end">${{ liabilities.loans|round(2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Otros Pasivos</td>
+                                    <td class="text-end">${{ liabilities.other_liabilities|round(2) }}</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-danger">
+                                    <th>TOTAL PASIVOS</th>
+                                    <th class="text-end">${{ total_liabilities|round(2) }}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">Patrimonio</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <td>Capital</td>
+                                    <td class="text-end">${{ equity|round(2) }}</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-info">
+                                    <th>TOTAL PATRIMONIO</th>
+                                    <th class="text-end">${{ equity|round(2) }}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Resumen</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h4>Total Activos:</h4>
+                        <h2 class="text-success">${{ total_assets|round(2) }}</h2>
+                    </div>
+                    <div class="col-md-4">
+                        <h4>Total Pasivos:</h4>
+                        <h2 class="text-danger">${{ total_liabilities|round(2) }}</h2>
+                    </div>
+                    <div class="col-md-4">
+                        <h4>Patrimonio:</h4>
+                        <h2 class="text-info">${{ equity|round(2) }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+
+{% block title %}Sistema - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Información del Sistema</h1>
+        <div>
+            <button class="btn btn-info btn-sm" onclick="refreshStats()">
+                <i class="fas fa-sync fa-sm text-white-50"></i> Actualizar
+            </button>
+        </div>
+    </div>
+
+    <!-- System Statistics -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Propiedades
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ system_stats.total_properties }}
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                {{ system_stats.active_properties }} activas
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-building fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Usuarios
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ system_stats.total_users }}
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                {{ system_stats.active_users }} activos
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Unidades
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ system_stats.total_units }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-home fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Base de Datos
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ db_size }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-database fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Statistics -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Estadísticas Detalladas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Transacciones</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>Pagos:</strong> {{ system_stats.total_payments }}</li>
+                                <li><strong>Gastos:</strong> {{ system_stats.total_expenses }}</li>
+                                <li><strong>Documentos:</strong> {{ system_stats.total_documents }}</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-success">Actividades</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>Asambleas:</strong> {{ system_stats.total_assemblies }}</li>
+                                <li><strong>Tickets:</strong> {{ system_stats.total_tickets }}</li>
+                                <li><strong>Mantenimiento:</strong> {{ system_stats.total_maintenance_tasks }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="text-info">Seguridad</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>Registros de Visitantes:</strong> {{ system_stats.total_visitor_logs }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Información del Sistema</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td><strong>Versión:</strong></td>
+                            <td>PH Control v1.0</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Framework:</strong></td>
+                            <td>Flask (Python)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Base de Datos:</strong></td>
+                            <td>PostgreSQL</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Puerto:</strong></td>
+                            <td>5003</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Modo:</strong></td>
+                            <td>
+                                <span class="badge badge-warning">Desarrollo</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Última Actualización:</strong></td>
+                            <td>{{ now|datetime }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Logins -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Accesos Recientes al Sistema</h6>
+        </div>
+        <div class="card-body">
+            {% if recent_logins %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Email</th>
+                                <th>Rol</th>
+                                <th>Último Acceso</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in recent_logins %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="mr-3">
+                                            <div class="icon-circle bg-primary">
+                                                <i class="fas fa-user text-white"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <strong>{{ user.full_name }}</strong>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ user.email }}</td>
+                                <td>
+                                    {% if user.role == 'admin_general' %}
+                                        <span class="badge badge-danger">Admin General</span>
+                                    {% elif user.role == 'admin_ph' %}
+                                        <span class="badge badge-warning">Admin PH</span>
+                                    {% elif user.role == 'resident' %}
+                                        <span class="badge badge-info">Residente</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ user.role|title }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if user.last_login %}
+                                        {{ user.last_login|datetime }}
+                                    {% else %}
+                                        <span class="text-muted">Nunca</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if user.is_active %}
+                                        <span class="badge badge-success">Activo</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">Inactivo</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-sign-in-alt fa-3x text-gray-300 mb-3"></i>
+                    <h5 class="text-gray-500">No hay registros de acceso</h5>
+                    <p class="text-gray-400">Los accesos al sistema aparecerán aquí.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- System Actions -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Acciones del Sistema</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <button class="btn btn-info btn-block" onclick="generateSystemReport()">
+                        <i class="fas fa-file-alt mr-2"></i>
+                        Reporte del Sistema
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <a href="{{ url_for('backup.index') }}" class="btn btn-warning btn-block">
+                        <i class="fas fa-download mr-2"></i>
+                        Respaldos
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{{ url_for('audit.index') }}" class="btn btn-success btn-block">
+                        <i class="fas fa-history mr-2"></i>
+                        Auditoría
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-secondary btn-block" onclick="clearCache()">
+                        <i class="fas fa-broom mr-2"></i>
+                        Limpiar Caché
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function refreshStats() {
+    showAlert('info', 'Actualizando estadísticas...');
+    
+    fetch('/admin/api/stats/overview')
+        .then(response => response.json())
+        .then(data => {
+            showAlert('success', 'Estadísticas actualizadas');
+            // Update UI with new data if needed
+        })
+        .catch(error => {
+            showAlert('error', 'Error al actualizar estadísticas');
+        });
+}
+
+function generateSystemReport() {
+    showAlert('info', 'Generando reporte del sistema...');
+    
+    // Simulate report generation
+    setTimeout(() => {
+        showAlert('success', 'Reporte generado exitosamente');
+    }, 2000);
+}
+
+function clearCache() {
+    if (confirm('¿Estás seguro de que deseas limpiar el caché del sistema?')) {
+        showAlert('info', 'Limpiando caché...');
+        
+        // Simulate cache clearing
+        setTimeout(() => {
+            showAlert('success', 'Caché limpiado exitosamente');
+        }, 1500);
+    }
+}
+
+function showAlert(type, message) {
+    const alertClass = type === 'success' ? 'alert-success' : type === 'info' ? 'alert-info' : 'alert-danger';
+    const alertHtml = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    container.insertAdjacentHTML('afterbegin', alertHtml);
+    
+    setTimeout(() => {
+        const alert = container.querySelector('.alert');
+        if (alert) {
+            alert.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

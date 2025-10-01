@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar Pago - PH Control{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Registrar Pago</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('financial.payments') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a pagos
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="property_id" class="form-label">Propiedad *</label>
+                    <select name="property_id" id="property_id" class="form-select" required>
+                        <option value="">Seleccione una propiedad</option>
+                        {% for property in properties %}
+                        <option value="{{ property.id }}">{{ property.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="unit_id" class="form-label">Unidad *</label>
+                    <select name="unit_id" id="unit_id" class="form-select" required disabled>
+                        <option value="">Seleccione primero una propiedad</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="amount" class="form-label">Monto *</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label for="payment_date" class="form-label">Fecha de Pago *</label>
+                    <input type="date" class="form-control" id="payment_date" name="payment_date" required>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="payment_type" class="form-label">Tipo de Pago *</label>
+                    <select name="payment_type" id="payment_type" class="form-select" required>
+                        <option value="">Seleccione un tipo</option>
+                        <option value="monthly_fee">Cuota Mensual</option>
+                        <option value="special_fee">Cuota Extraordinaria</option>
+                        <option value="late_fee">Recargo por Mora</option>
+                        <option value="other">Otro</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="payment_method" class="form-label">Método de Pago</label>
+                    <select name="payment_method" id="payment_method" class="form-select">
+                        <option value="cash">Efectivo</option>
+                        <option value="bank_transfer">Transferencia Bancaria</option>
+                        <option value="check">Cheque</option>
+                        <option value="credit_card">Tarjeta de Crédito</option>
+                        <option value="debit_card">Tarjeta de Débito</option>
+                        <option value="other">Otro</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="description" class="form-label">Descripción</label>
+                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="button" class="btn btn-outline-secondary" onclick="history.back()">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Registrar Pago</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const propertySelect = document.getElementById('property_id');
+        const unitSelect = document.getElementById('unit_id');
+        const amountInput = document.getElementById('amount');
+        
+        // Set default date to today
+        document.getElementById('payment_date').valueAsDate = new Date();
+        
+        // Load units when property is selected
+        propertySelect.addEventListener('change', function() {
+            const propertyId = this.value;
+            unitSelect.disabled = !propertyId;
+            unitSelect.innerHTML = '<option value="">Cargando unidades...</option>';
+            
+            if (propertyId) {
+                fetch(`/financial/api/units/${propertyId}`)
+                    .then(response => response.json())
+                    .then(units => {
+                        unitSelect.innerHTML = '<option value="">Seleccione una unidad</option>';
+                        units.forEach(unit => {
+                            const option = document.createElement('option');
+                            option.value = unit.id;
+                            option.textContent = `${unit.number} - ${unit.owner_name}`;
+                            option.dataset.fee = unit.monthly_fee;
+                            unitSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error loading units:', error);
+                        unitSelect.innerHTML = '<option value="">Error al cargar unidades</option>';
+                    });
+            } else {
+                unitSelect.innerHTML = '<option value="">Seleccione primero una propiedad</option>';
+            }
+        });
+        
+        // Set default amount to monthly fee when unit is selected
+        unitSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const paymentType = document.getElementById('payment_type').value;
+            
+            if (selectedOption && selectedOption.dataset.fee && paymentType === 'monthly_fee') {
+                amountInput.value = selectedOption.dataset.fee;
+            }
+        });
+        
+        // Update amount when payment type changes to monthly fee
+        document.getElementById('payment_type').addEventListener('change', function() {
+            if (this.value === 'monthly_fee') {
+                const selectedOption = unitSelect.options[unitSelect.selectedIndex];
+                if (selectedOption && selectedOption.dataset.fee) {
+                    amountInput.value = selectedOption.dataset.fee;
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

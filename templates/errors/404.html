@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Página No Encontrada - PH Control{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="error-template">
+                <h1 class="display-1 text-primary">404</h1>
+                <h2>Página No Encontrada</h2>
+                <div class="error-details">
+                    <p class="text-muted">
+                        Lo sentimos, la página que buscas no existe o ha sido movida.
+                    </p>
+                </div>
+                <div class="error-actions">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-house"></i> Ir al Inicio
+                    </a>
+                    <a href="javascript:history.back()" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
