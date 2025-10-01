@@ -4,7 +4,7 @@ API routes for PH Control
 from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 from utils.notifications import notification_manager
-from models import Notification, User, db
+from models_mongo import Notification, User
 from datetime import datetime
 
 api_bp = Blueprint('api', __name__)
@@ -12,7 +12,6 @@ api_bp = Blueprint('api', __name__)
 
 # Notification API endpoints
 @api_bp.route('/notifications/check')
-@login_required
 def check_notifications():
     """Check for new notifications."""
     try:
@@ -20,7 +19,8 @@ def check_notifications():
         if not current_user.is_authenticated:
             return jsonify({'new_notifications': 0, 'authenticated': False})
 
-        count = notification_manager.get_unread_count(current_user.id)
+        # Count unread notifications for current user
+        count = Notification.objects(user_id=current_user.id, is_read=False).count()
         return jsonify({'new_notifications': count, 'authenticated': True})
 
     except Exception as e:
@@ -36,17 +36,18 @@ def api_list_notifications():
         limit = request.args.get('limit', 10, type=int)
         offset = request.args.get('offset', 0, type=int)
 
-        notifications = notification_manager.get_user_notifications(
-            user_id=current_user.id,
-            unread_only=unread_only,
-            limit=limit,
-            offset=offset
-        )
+        # Build query
+        query = {'user_id': current_user.id}
+        if unread_only:
+            query['is_read'] = False
+
+        # Get notifications with pagination
+        notifications = Notification.objects(**query).order_by('-created_at').skip(offset).limit(limit)
 
         notifications_data = []
         for notification in notifications:
             notifications_data.append({
-                'id': notification.id,
+                'id': str(notification.id),
                 'title': notification.title,
                 'message': notification.message,
                 'type': notification.notification_type,
@@ -57,9 +58,12 @@ def api_list_notifications():
                 'expires_at': notification.expires_at.isoformat() if notification.expires_at else None
             })
 
+        # Get total unread count
+        unread_count = Notification.objects(user_id=current_user.id, is_read=False).count()
+
         return jsonify({
             'notifications': notifications_data,
-            'unread_count': notification_manager.get_unread_count(current_user.id)
+            'unread_count': unread_count
         })
 
     except Exception as e:
@@ -71,25 +75,28 @@ def api_list_notifications():
 def api_unread_count():
     """API endpoint para obtener número de notificaciones no leídas."""
     try:
-        count = notification_manager.get_unread_count(current_user.id)
+        count = Notification.objects(user_id=current_user.id, is_read=False).count()
         return jsonify({'count': count})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
-@api_bp.route('/notifications/mark-read/<int:notification_id>', methods=['POST'])
+@api_bp.route('/notifications/mark-read/<notification_id>', methods=['POST'])
 @login_required
 def mark_notification_read(notification_id):
     """Marcar notificación como leída."""
     try:
-        success = notification_manager.mark_as_read(notification_id, current_user.id)
+        # Find and update notification
+        notification = Notification.objects.get(id=notification_id, user_id=current_user.id)
+        notification.is_read = True
+        notification.read_at = datetime.utcnow()
+        notification.save()
 
-        if success:
-            return jsonify({'success': True})
-        else:
-            return jsonify({'error': 'Notificación no encontrada'}), 404
+        return jsonify({'success': True})
 
+    except Notification.DoesNotExist:
+        return jsonify({'error': 'Notificación no encontrada'}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -99,21 +106,26 @@ def mark_notification_read(notification_id):
 def mark_all_notifications_read():
     """Marcar todas las notificaciones como leídas."""
     try:
-        count = notification_manager.mark_all_as_read(current_user.id)
+        # Update all unread notifications for current user
+        count = Notification.objects(user_id=current_user.id, is_read=False).update(
+            set__is_read=True,
+            set__read_at=datetime.utcnow()
+        )
         return jsonify({'success': True, 'count': count})
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
-@api_bp.route('/notifications/delete/<int:notification_id>', methods=['POST'])
+@api_bp.route('/notifications/delete/<notification_id>', methods=['POST'])
 @login_required
 def delete_notification(notification_id):
     """Eliminar notificación."""
     try:
-        success = notification_manager.delete_notification(notification_id, current_user.id)
+        # Find and delete notification
+        result = Notification.objects(id=notification_id, user_id=current_user.id).delete()
 
-        if success:
+        if result > 0:
             return jsonify({'success': True})
         else:
             return jsonify({'error': 'Notificación no encontrada'}), 404

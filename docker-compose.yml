@@ -7,7 +7,7 @@ services:
       - "5003:5003"
     environment:
       - FLASK_ENV=development
-      - DATABASE_URL=postgresql://phcontrol:phcontrol123@ph-database:5432/phcontrol_db
+      - MONGO_URI=mongodb://ph-database:27017/ph_control_db
       - SECRET_KEY=dev-secret-key-change-in-production-ph-control-2024
       - PORT=5003
       - DEBUG=True
@@ -23,18 +23,16 @@ services:
       - ph-network
 
   ph-database:
-    image: postgres:15
+    image: mongo:7.0
     container_name: ph-control-database
     restart: unless-stopped
     environment:
-      - POSTGRES_DB=phcontrol_db
-      - POSTGRES_USER=phcontrol
-      - POSTGRES_PASSWORD=phcontrol123
+      - MONGO_INITDB_DATABASE=ph_control_db
     volumes:
-      - ph_postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ph_mongo_data:/data/db
+      - ./init_mongo.py:/docker-entrypoint-initdb.d/init_mongo.py:ro
     ports:
-      - "5435:5432"
+      - "27017:27017"
     networks:
       - ph-network
 
@@ -48,7 +46,7 @@ services:
       - ph-network
 
 volumes:
-  ph_postgres_data:
+  ph_mongo_data:
   ph_uploads:
 
 networks:
