@@ -202,33 +202,36 @@ def user_stats():
     except Exception as e:
         return jsonify({'error': 'Error del servidor'}), 500
 
-# Create default admin user (only if none exists)
+# Clean duplicates and create default admin user
 with app.app_context():
     try:
-        # Verificar si existe algún admin
+        print('🧹 Limpiando duplicados en inicio...')
+        
+        # Limpiar usuarios duplicados
+        emails_seen = set()
+        users_to_delete = []
+        
+        for user in User.objects.all():
+            if user.email in emails_seen:
+                users_to_delete.append(user)
+            else:
+                emails_seen.add(user.email)
+        
+        for user in users_to_delete:
+            user.delete()
+            print(f'🗑️ Duplicado eliminado: {user.email}')
+        
+        # Solo verificar si existe admin, no crear
         admin_count = User.objects(email='admin@phcontrol.com').count()
-        if admin_count == 0:
-            admin = User(
-                email='admin@phcontrol.com',
-                first_name='Administrador',
-                last_name='General',
-                role='admin_general',
-                is_active=True
-            )
-            admin.set_password('admin123')
-            admin.save()
-            print('✅ Usuario administrador creado: admin@phcontrol.com / admin123')
-        elif admin_count > 1:
-            # Eliminar duplicados, mantener solo el primero
-            admins = User.objects(email='admin@phcontrol.com')
-            for i, admin in enumerate(admins):
-                if i > 0:  # Mantener solo el primero
-                    admin.delete()
-            print(f'✅ Duplicados eliminados, admin único mantenido')
-        else:
+        if admin_count > 0:
             print('✅ Usuario administrador existe')
+        else:
+            print('ℹ️ No hay usuario administrador (usar /api/users/create para crear usuarios)')
+            
+        print(f'✅ Base de datos limpia - {User.objects.count()} usuarios únicos')
+        
     except Exception as e:
-        print(f'❌ Error verificando admin: {e}')
+        print(f'❌ Error en limpieza inicial: {e}')
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5003))
