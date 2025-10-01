@@ -12,15 +12,18 @@ api_bp = Blueprint('api', __name__)
 
 # Notification API endpoints
 @api_bp.route('/notifications/check')
-@login_required
 def check_notifications():
     """Check for new notifications."""
     try:
+        # Check if user is authenticated
+        if not current_user.is_authenticated:
+            return jsonify({'new_notifications': 0, 'authenticated': False})
+
         count = notification_manager.get_unread_count(current_user.id)
-        return jsonify({'new_notifications': count})
+        return jsonify({'new_notifications': count, 'authenticated': True})
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': str(e), 'authenticated': current_user.is_authenticated if hasattr(current_user, 'is_authenticated') else False}), 500
 
 
 @api_bp.route('/notifications/list')
