@@ -41,11 +41,11 @@ def login():
             
             # Redirect based on user role
             if user.role == 'admin_general':
-                return redirect(url_for('admin.dashboard'))
+                return redirect('/dashboard/admin')
             elif user.role == 'admin_ph':
-                return redirect(url_for('dashboard.index'))
+                return redirect('/dashboard')
             else:
-                return redirect(url_for('dashboard.resident'))
+                return redirect('/dashboard/resident')
         else:
             # Log failed login attempt
             # log_login_attempt(email, success=False, error_message='Invalid credentials')
