@@ -269,34 +269,4 @@ if __name__ == '__main__':
         print(f"❌ Error iniciando la aplicación: {e}")
         import traceback
         traceback.print_exc()
-        sys.exit(1)session.commit()
-                        print("🔧 Contraseña de administrador corregida")
-                
-                print("✅ Sistema inicializado correctamente")
-                
-            except Exception as e:
-                print(f"❌ Error en inicialización: {e}")
-        
-        print("✅ Sistema inicializado")
-        
-        # Development server
-        port = int(os.environ.get('PORT', 5003))
-        debug = os.environ.get('DEBUG', 'True').lower() == 'true'
-        
-        print("🌐 Iniciando aplicación Flask...")
-        print(f"Disponible en: http://localhost:{port}")
-        
-        from utils.backup import backup_manager
-        backup_manager.start_scheduler()
-        
-        print(f"🚀 Iniciando PH Control en puerto {port}")
-        print(f"🐛 Debug mode: {debug}")
-        print(f"🌐 Accesible en: http://0.0.0.0:{port}")
-        print("=" * 50)
-        
-        app.run(debug=debug, host='0.0.0.0', port=port, threaded=True)
-    except Exception as e:
-        print(f"❌ Error iniciando la aplicación: {e}")
-        import traceback
-        traceback.print_exc()
         sys.exit(1)
