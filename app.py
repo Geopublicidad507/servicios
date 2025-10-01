@@ -32,13 +32,19 @@ def load_user(user_id):
 # Routes
 @app.route('/')
 def index():
+    from flask import redirect, url_for
+    return redirect(url_for('auth.login'))
+
+@app.route('/api')
+def api_info():
     return jsonify({
         'message': 'PH Control API - Sistema de Gestión de Propiedades Horizontales',
         'version': '1.0.0',
         'status': 'OK',
         'mongodb': 'connected',
         'endpoints': {
-            'login': '/api/auth/login',
+            'login_page': '/auth/login',
+            'api_login': '/api/auth/login',
             'users': '/api/users',
             'health': '/health'
         }
