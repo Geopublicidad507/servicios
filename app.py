@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, url_for
 from flask_login import LoginManager, current_user
 from flask_mail import Mail
-from models_mongo import init_mongo_db, User
+from models import db, User
 from utils.api_client import api_client
 import os
 import sys
@@ -28,8 +28,8 @@ def create_app():
     
     # Configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
-    app.config['MONGO_URI'] = 'mongodb+srv://geopublicidad507_db_user:Cdeg14650641*@consultor351.yv7gbsp.mongodb.net/miDB?retryWrites=true&w=majority'
-    app.config['API_BASE_URL'] = 'https://printed-binny-consultor351-faafa5db.koyeb.app'
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///ph_control.db')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     # Upload configuration
     app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'uploads')
@@ -47,8 +47,8 @@ def create_app():
     app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
     app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
     
-    # Initialize MongoDB
-    init_mongo_db(app)
+    # Initialize extensions
+    db.init_app(app)
     
     # Initialize API Client
     api_client.init_app(app)
@@ -62,10 +62,7 @@ def create_app():
     
     @login_manager.user_loader
     def load_user(user_id):
-        try:
-            return User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return None
+        return User.query.get(int(user_id))
     
     # Initialize Flask-Mail
     mail = Mail(app)
@@ -182,20 +179,22 @@ def create_app():
             return {'unread_notifications_count': unread_notifications}
         return {'unread_notifications_count': 0}
     
-    # Create default admin user
+    # Create database tables
     with app.app_context():
-        try:
-            admin_user = User.objects.get(email='admin@phcontrol.com')
-        except User.DoesNotExist:
+        db.create_all()
+
+        # Create default admin user if it doesn't exist
+        admin_user = User.query.filter_by(email='admin@phcontrol.com').first()
+        if not admin_user:
             admin_user = User(
                 email='admin@phcontrol.com',
                 first_name='Administrador',
                 last_name='General',
-                role='admin_general',
-                is_active=True
+                role='admin_general'
             )
             admin_user.set_password('admin123')
-            admin_user.save()
+            db.session.add(admin_user)
+            db.session.commit()
             print("Default admin user created: admin@phcontrol.com / admin123")
     
     return app
