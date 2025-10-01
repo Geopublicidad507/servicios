@@ -2,7 +2,6 @@ from flask import Flask, render_template, redirect, url_for
 from flask_login import LoginManager, current_user
 from flask_mail import Mail
 from models import db, User
-from utils.api_client import api_client
 import os
 import sys
 from datetime import datetime
@@ -49,9 +48,6 @@ def create_app():
     
     # Initialize extensions
     db.init_app(app)
-    
-    # Initialize API Client
-    api_client.init_app(app)
     
     # Initialize Flask-Login
     login_manager = LoginManager()
@@ -207,37 +203,15 @@ mail = Mail(app)
 
 if __name__ == '__main__':
     try:
-        # Inicializar sistema primero
-        print("🚀 Iniciando PH Control...")
-        
-        print("🔧 Inicializando sistema...")
-        print(f"🌐 API Base URL: {app.config['API_BASE_URL']}")
-        print(f"💾 MongoDB: {app.config['MONGO_URI'][:50]}...")
-        
-        # Probar conexión a MongoDB
-        try:
-            from mongoengine import connect
-            connect(host=app.config['MONGO_URI'])
-            print("✅ Conexión a MongoDB exitosa")
-        except Exception as e:
-            print(f"❌ Error conectando a MongoDB: {e}")
-        
-        print("✅ Sistema inicializado correctamente")
-        
-        print("✅ Sistema inicializado")
-        
         # Development server
         port = int(os.environ.get('PORT', 5003))
         debug = os.environ.get('DEBUG', 'True').lower() == 'true'
-        
-        print("🌐 Iniciando aplicación Flask...")
-        print(f"Disponible en: http://localhost:{port}")
 
         print(f"🚀 Iniciando PH Control en puerto {port}")
         print(f"🐛 Debug mode: {debug}")
         print(f"🌐 Accesible en: http://0.0.0.0:{port}")
         print("=" * 50)
-        
+
         app.run(debug=debug, host='0.0.0.0', port=port, threaded=True)
     except Exception as e:
         print(f"❌ Error iniciando la aplicación: {e}")
