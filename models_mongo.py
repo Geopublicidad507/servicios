@@ -35,7 +35,7 @@ class User(Document, UserMixin):
     payment_ids = fields.ListField(fields.ReferenceField('Payment'))
     ticket_ids = fields.ListField(fields.ReferenceField('Ticket'))
     assigned_ticket_ids = fields.ListField(fields.ReferenceField('Ticket'))
-    notification_ids = fields.ListField(fields.ReferenceField('Notification'))
+    notification_ids = fields.ListField(fields.ReferenceField('NotificationDoc'))
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -67,7 +67,7 @@ class Property(Document):
     unit_ids = fields.ListField(fields.ReferenceField('Unit'))
     expense_ids = fields.ListField(fields.ReferenceField('Expense'))
     maintenance_task_ids = fields.ListField(fields.ReferenceField('MaintenanceTask'))
-    document_ids = fields.ListField(fields.ReferenceField('Document'))
+    document_ids = fields.ListField(fields.ReferenceField('DocumentFile'))
     assembly_ids = fields.ListField(fields.ReferenceField('Assembly'))
 
     def __str__(self):
@@ -165,7 +165,7 @@ class MaintenanceTask(Document):
     def __str__(self):
         return f'<MaintenanceTask {self.title}>'
 
-class Document(Document):
+class DocumentFile(Document):
     """Modelo de Documento"""
     meta = {'collection': 'documents'}
 
@@ -183,9 +183,9 @@ class Document(Document):
     created_at = fields.DateTimeField(default=datetime.utcnow)
 
     def __str__(self):
-        return f'<Document {self.title}>'
+        return f'<DocumentFile {self.title}>'
 
-class Notification(Document):
+class NotificationDoc(Document):
     """Modelo de Notificación"""
     meta = {'collection': 'notifications'}
 
@@ -206,7 +206,7 @@ class Notification(Document):
     created_at = fields.DateTimeField(default=datetime.utcnow)
 
     def __str__(self):
-        return f'<Notification {self.title}>'
+        return f'<NotificationDoc {self.title}>'
 
 class Assembly(Document):
     """Modelo de Asamblea"""
