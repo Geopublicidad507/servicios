@@ -255,10 +255,7 @@ if __name__ == '__main__':
         
         print("🌐 Iniciando aplicación Flask...")
         print(f"Disponible en: http://localhost:{port}")
-        
-        from utils.backup import backup_manager
-        backup_manager.start_scheduler()
-        
+
         print(f"🚀 Iniciando PH Control en puerto {port}")
         print(f"🐛 Debug mode: {debug}")
         print(f"🌐 Accesible en: http://0.0.0.0:{port}")
