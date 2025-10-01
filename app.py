@@ -23,6 +23,7 @@ from routes.admin import admin_bp
 from routes.backup import backup_bp
 from routes.audit import audit_bp
 from routes.notifications import notifications_bp
+from routes.api import api_bp
 from routes.reports import reports_bp
 
 def create_app():
@@ -91,6 +92,7 @@ def create_app():
     app.register_blueprint(backup_bp, url_prefix='/backup')
     app.register_blueprint(audit_bp, url_prefix='/audit')
     app.register_blueprint(notifications_bp, url_prefix='/notifications')
+    app.register_blueprint(api_bp, url_prefix='/api')
     app.register_blueprint(reports_bp, url_prefix='/reports')
     
     # Root route
