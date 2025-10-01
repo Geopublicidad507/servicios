@@ -16,7 +16,10 @@ import notificationRoutes from './routes/notifications';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8000;
+
+// Trust proxy for Koyeb
+app.set('trust proxy', 1);
 
 // Middleware
 app.use(helmet({

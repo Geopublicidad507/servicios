@@ -37,7 +37,10 @@ function initFinancialChart() {
 
 // Properties Chart
 function initPropertiesChart() {
-    const ctx2 = document.getElementById('propertiesChart').getContext('2d');
+    const canvas = document.getElementById('propertiesChart');
+    canvas.width = 300;
+    canvas.height = 300;
+    const ctx2 = canvas.getContext('2d');
     new Chart(ctx2, {
         type: 'doughnut',
         data: {
@@ -49,9 +52,8 @@ function initPropertiesChart() {
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            aspectRatio: 1,
+            responsive: false,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     display: false
