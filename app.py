@@ -43,7 +43,8 @@ def index():
 
 @app.route('/favicon.ico')
 def favicon():
-    return '', 204
+    from flask import send_from_directory
+    return send_from_directory('static', 'favicon.ico')
 
 @app.route('/login')
 def login_page():
@@ -69,10 +70,21 @@ def dashboard_admin():
 def dashboard_resident():
     return jsonify({'message': 'Dashboard Residente - Requiere autenticación', 'login_url': '/auth/login'})
 
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    from flask import send_from_directory
+    return send_from_directory('static', filename)
+
 @app.route('/<path:filename>')
 def catch_all(filename):
-    if filename.endswith(('.woff', '.woff2', '.ttf', '.eot', '.css', '.js')):
-        return '', 404
+    if filename.endswith(('.woff', '.woff2', '.ttf', '.eot')):
+        return '', 204
+    if filename.endswith(('.css', '.js', '.png', '.jpg', '.gif')):
+        from flask import send_from_directory
+        try:
+            return send_from_directory('static', filename)
+        except:
+            return '', 404
     if filename in ['login', 'dashboard', 'admin']:
         return jsonify({
             'message': 'Esta es una API REST. Use los endpoints disponibles.',
@@ -163,6 +175,15 @@ def create_user():
     except Exception as e:
         return jsonify({'error': 'Error creando usuarios'}), 500
 
+@app.route('/api/users/clean-duplicates', methods=['POST'])
+def clean_duplicates():
+    try:
+        from clean_duplicates import clean_duplicates
+        clean_duplicates()
+        return jsonify({'message': 'Duplicados eliminados exitosamente'})
+    except Exception as e:
+        return jsonify({'error': 'Error limpiando duplicados'}), 500
+
 @app.route('/api/users/stats')
 def user_stats():
     try:
@@ -181,22 +202,33 @@ def user_stats():
     except Exception as e:
         return jsonify({'error': 'Error del servidor'}), 500
 
-# Create default admin user
+# Create default admin user (only if none exists)
 with app.app_context():
     try:
-        admin = User.objects.get(email='admin@phcontrol.com')
-        print('✅ Usuario administrador existe')
-    except User.DoesNotExist:
-        admin = User(
-            email='admin@phcontrol.com',
-            first_name='Administrador',
-            last_name='General',
-            role='admin_general',
-            is_active=True
-        )
-        admin.set_password('admin123')
-        admin.save()
-        print('✅ Usuario administrador creado: admin@phcontrol.com / admin123')
+        # Verificar si existe algún admin
+        admin_count = User.objects(email='admin@phcontrol.com').count()
+        if admin_count == 0:
+            admin = User(
+                email='admin@phcontrol.com',
+                first_name='Administrador',
+                last_name='General',
+                role='admin_general',
+                is_active=True
+            )
+            admin.set_password('admin123')
+            admin.save()
+            print('✅ Usuario administrador creado: admin@phcontrol.com / admin123')
+        elif admin_count > 1:
+            # Eliminar duplicados, mantener solo el primero
+            admins = User.objects(email='admin@phcontrol.com')
+            for i, admin in enumerate(admins):
+                if i > 0:  # Mantener solo el primero
+                    admin.delete()
+            print(f'✅ Duplicados eliminados, admin único mantenido')
+        else:
+            print('✅ Usuario administrador existe')
+    except Exception as e:
+        print(f'❌ Error verificando admin: {e}')
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5003))
