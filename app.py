@@ -173,14 +173,54 @@ def admin_module(subpath=None):
                          recent_activities=[], alerts=[], unread_notifications_count=0)
 
 @app.route('/notifications')
-@app.route('/notifications/<path:subpath>')
-def notifications_module(subpath=None):
+def notifications_module():
     from flask_login import current_user
     if not current_user.is_authenticated:
         return redirect('/auth/login')
     return render_template('dashboard/index.html', 
                          stats={'total_properties': 1, 'total_units': 10, 'pending_tasks': 2, 'monthly_income': 7500},
                          recent_activities=[], alerts=[], unread_notifications_count=0)
+
+@app.route('/notifications/api/list')
+def notifications_api_list():
+    from flask_login import current_user
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'No autenticado'}), 401
+    
+    try:
+        from models_mongo import NotificationDoc
+        notifications = NotificationDoc.objects(user_id=current_user.id, is_read=False).limit(5)
+        notifications_data = []
+        for notif in notifications:
+            notifications_data.append({
+                'id': str(notif.id),
+                'title': notif.title,
+                'message': notif.message,
+                'created_at': notif.created_at.isoformat(),
+                'notification_type': notif.notification_type
+            })
+        return jsonify({
+            'notifications': notifications_data,
+            'unread_count': len(notifications_data)
+        })
+    except Exception as e:
+        return jsonify({
+            'notifications': [],
+            'unread_count': 0
+        })
+
+@app.route('/notifications/api/unread-count')
+def notifications_unread_count():
+    from flask_login import current_user
+    if not current_user.is_authenticated:
+        return jsonify({'count': 0})
+    
+    try:
+        from models_mongo import NotificationDoc
+        count = NotificationDoc.objects(user_id=current_user.id, is_read=False).count()
+        return jsonify({'count': count})
+    except:
+        return jsonify({'count': 0})
 
 @app.route('/<path:filename>')
 def catch_all(filename):
