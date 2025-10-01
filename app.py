@@ -214,6 +214,15 @@ if __name__ == '__main__':
         print("🔧 Inicializando sistema...")
         print(f"🌐 API Base URL: {app.config['API_BASE_URL']}")
         print(f"💾 MongoDB: {app.config['MONGO_URI'][:50]}...")
+        
+        # Probar conexión a MongoDB
+        try:
+            from mongoengine import connect
+            connect(host=app.config['MONGO_URI'])
+            print("✅ Conexión a MongoDB exitosa")
+        except Exception as e:
+            print(f"❌ Error conectando a MongoDB: {e}")
+        
         print("✅ Sistema inicializado correctamente")
         
         print("✅ Sistema inicializado")
