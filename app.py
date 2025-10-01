@@ -2,13 +2,10 @@ from flask import Flask, render_template, redirect, url_for
 from flask_login import LoginManager, current_user
 from flask_mail import Mail
 from models_mongo import init_mongo_db, User
+from utils.api_client import api_client
 import os
 import sys
 from datetime import datetime
-from dotenv import load_dotenv
-
-# Cargar variables de entorno
-load_dotenv()
 
 # Import blueprints
 from routes.auth import auth_bp
@@ -31,7 +28,8 @@ def create_app():
     
     # Configuration
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
-    app.config['MONGO_URI'] = os.environ.get('MONGO_URI', 'mongodb+srv://geopublicidad507_db_user:Cdeg14650641*@consultor351.yv7gbsp.mongodb.net/miDB?retryWrites=true&w=majority')
+    app.config['MONGO_URI'] = 'mongodb+srv://geopublicidad507_db_user:Cdeg14650641*@consultor351.yv7gbsp.mongodb.net/miDB?retryWrites=true&w=majority'
+    app.config['API_BASE_URL'] = 'https://printed-binny-consultor351-faafa5db.koyeb.app'
     
     # Upload configuration
     app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'uploads')
@@ -51,6 +49,9 @@ def create_app():
     
     # Initialize MongoDB
     init_mongo_db(app)
+    
+    # Initialize API Client
+    api_client.init_app(app)
     
     # Initialize Flask-Login
     login_manager = LoginManager()
@@ -181,7 +182,7 @@ def create_app():
             return {'unread_notifications_count': unread_notifications}
         return {'unread_notifications_count': 0}
     
-    # Create default admin user if it doesn't exist
+    # Create default admin user
     with app.app_context():
         try:
             admin_user = User.objects.get(email='admin@phcontrol.com')
@@ -190,7 +191,8 @@ def create_app():
                 email='admin@phcontrol.com',
                 first_name='Administrador',
                 last_name='General',
-                role='admin_general'
+                role='admin_general',
+                is_active=True
             )
             admin_user.set_password('admin123')
             admin_user.save()
@@ -209,42 +211,10 @@ if __name__ == '__main__':
         # Inicializar sistema primero
         print("🚀 Iniciando PH Control...")
         
-        # Verificar y crear base de datos
-        with app.app_context():
-            print("🔧 Inicializando sistema...")
-            
-            # Probar conexión
-            try:
-                db.create_all()
-                print("🧪 Probando conexión a la base de datos...")
-                print(f"🔍 Probando conexión a: {app.config['SQLALCHEMY_DATABASE_URI']}")
-                print("✅ Conexión exitosa a la base de datos")
-                
-                # Crear usuario administrador si no existe
-                admin_user = User.query.filter_by(email='admin@phcontrol.com').first()
-                if not admin_user:
-                    admin_user = User(
-                        email='admin@phcontrol.com',
-                        first_name='Administrador',
-                        last_name='General',
-                        role='admin_general',
-                        is_active=True
-                    )
-                    admin_user.set_password('admin123')
-                    db.session.add(admin_user)
-                    db.session.commit()
-                    print("👤 Usuario administrador creado")
-                else:
-                    # Verificar contraseña
-                    if not admin_user.check_password('admin123'):
-                        admin_user.set_password('admin123')
-                        db.session.commit()
-                        print("🔧 Contraseña de administrador corregida")
-                
-                print("✅ Sistema inicializado correctamente")
-                
-            except Exception as e:
-                print(f"❌ Error en inicialización: {e}")
+        print("🔧 Inicializando sistema...")
+        print(f"🌐 API Base URL: {app.config['API_BASE_URL']}")
+        print(f"💾 MongoDB: {app.config['MONGO_URI'][:50]}...")
+        print("✅ Sistema inicializado correctamente")
         
         print("✅ Sistema inicializado")
         
