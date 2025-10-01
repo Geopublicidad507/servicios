@@ -49,11 +49,15 @@ initialize_system() {
             python init_system.py
             
             if [ $? -eq 0 ]; then
-                echo "✅ Sistema inicializado"
+                echo "✅ Sistema inicializado correctamente"
             else
                 echo "❌ Error en inicialización completa"
                 echo "🔄 Continuando sin inicialización..."
             fi
+            
+            # Verificar y corregir credenciales
+            echo "🔧 Verificando credenciales de usuario..."
+            python fix_admin_credentials.py
         else
             echo "❌ Error en conexión básica"
             echo "🔄 Continuando sin inicialización..."

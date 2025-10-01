@@ -250,14 +250,29 @@ function initializeNotifications() {
 // Check for new notifications
 function checkNotifications() {
     fetch('/api/notifications/check')
-        .then(response => response.json())
+        .then(response => {
+            // Verificar si la respuesta es JSON
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json();
+            } else {
+                // Si no es JSON, probablemente es una redirección a login
+                console.log('Usuario no autenticado, saltando verificación de notificaciones');
+                return { new_notifications: 0, authenticated: false };
+            }
+        })
         .then(data => {
-            if (data.new_notifications > 0) {
+            if (data && data.authenticated !== false && data.new_notifications > 0) {
                 updateNotificationBadge(data.new_notifications);
                 showNotificationToast('Tienes nuevas notificaciones');
             }
         })
-        .catch(error => console.error('Error checking notifications:', error));
+        .catch(error => {
+            // Solo mostrar error si no es un problema de autenticación
+            if (!error.message.includes('Unexpected token')) {
+                console.error('Error checking notifications:', error);
+            }
+        });
 }
 
 // Update notification badge

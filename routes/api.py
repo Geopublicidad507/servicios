@@ -12,6 +12,7 @@ api_bp = Blueprint('api', __name__)
 
 # Notification API endpoints
 @api_bp.route('/notifications/check')
+@login_required
 def check_notifications():
     """Check for new notifications."""
     try:

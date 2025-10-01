@@ -207,9 +207,57 @@ mail = Mail(app)
 
 if __name__ == '__main__':
     try:
+        # Inicializar sistema primero
+        print("🚀 Iniciando PH Control...")
+        
+        # Verificar y crear base de datos
+        with app.app_context():
+            print("🔧 Inicializando sistema...")
+            
+            # Probar conexión
+            try:
+                db.create_all()
+                print("🧪 Probando conexión a la base de datos...")
+                print(f"🔍 Probando conexión a: {app.config['SQLALCHEMY_DATABASE_URI']}")
+                print("✅ Conexión exitosa a la base de datos")
+                
+                # Crear usuario administrador si no existe
+                admin_user = User.query.filter_by(email='admin@phcontrol.com').first()
+                if not admin_user:
+                    admin_user = User(
+                        email='admin@phcontrol.com',
+                        first_name='Administrador',
+                        last_name='General',
+                        role='admin_general',
+                        is_active=True
+                    )
+                    admin_user.set_password('admin123')
+                    db.session.add(admin_user)
+                    db.session.commit()
+                    print("👤 Usuario administrador creado")
+                else:
+                    # Verificar contraseña
+                    if not admin_user.check_password('admin123'):
+                        admin_user.set_password('admin123')
+                        db.session.commit()
+                        print("🔧 Contraseña de administrador corregida")
+                
+                print("✅ Sistema inicializado correctamente")
+                
+            except Exception as e:
+                print(f"❌ Error en inicialización: {e}")
+        
+        print("✅ Sistema inicializado")
+        
         # Development server
         port = int(os.environ.get('PORT', 5003))
         debug = os.environ.get('DEBUG', 'True').lower() == 'true'
+        
+        print("🌐 Iniciando aplicación Flask...")
+        print(f"Disponible en: http://localhost:{port}")
+        
+        from utils.backup import backup_manager
+        backup_manager.start_scheduler()
         
         print(f"🚀 Iniciando PH Control en puerto {port}")
         print(f"🐛 Debug mode: {debug}")
