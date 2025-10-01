@@ -1,6 +1,41 @@
-# PH Control - Sistema de Gestión de Propiedades Horizontales
+# 🏢 PH Control
 
-Sistema integral para la administración y gestión de Propiedades Horizontales (PH), orientado a cumplir con las necesidades legales y operativas de la administración de PH en Panamá, con especial énfasis en el cumplimiento de la Ley 284 de Propiedad Horizontal.
+## Sistema Integral de Gestión de Propiedades Horizontales
+
+[![Estado del Proyecto](https://img.shields.io/badge/Estado-Desarrollo-green.svg)](https://github.com/Geopublicidad507/servicios)
+[![Licencia](https://img.shields.io/badge/Licencia-MIT-blue.svg)](LICENSE)
+[![Tecnología](https://img.shields.io/badge/Python-Flask-orange.svg)](https://flask.palletsprojects.com/)
+
+> **PH Control** es una plataforma completa para la administración y gestión de Propiedades Horizontales en Panamá, diseñada específicamente para cumplir con los requisitos de la **Ley 284 de Propiedad Horizontal**.
+
+### 🌟 Características Destacadas
+
+- 📊 **Dashboard Ejecutivo** con métricas en tiempo real
+- 💰 **Gestión Financiera Completa** con reportes automáticos
+- 📧 **Sistema de Comunicación** integrado
+- 🔧 **Módulo de Mantenimiento** con seguimiento
+- 🔒 **Control de Acceso y Seguridad**
+- ⚖️ **Cumplimiento Legal** certificado
+- 📄 **Gestión Documental** digital
+
+### 🚀 Demo en Vivo
+
+[![Deployed on Koyeb](https://img.shields.io/badge/Deployed%20on-Koyeb-blue.svg)](https://awkward-gwendolen-consultor351-b4be20ea.koyeb.app/)
+
+**Accede a la aplicación en producción:** [PH Control Live](https://awkward-gwendolen-consultor351-b4be20ea.koyeb.app/)
+
+### 📋 Módulos del Sistema
+
+| Módulo | Descripción | Estado |
+|--------|-------------|--------|
+| 💰 **Financiero** | Control de ingresos, gastos y reportes | ✅ Completo |
+| 👥 **Residentes** | Gestión de propietarios y residentes | ✅ Completo |
+| 🏢 **Propiedades** | Administración de unidades y PH | ✅ Completo |
+| 📧 **Comunicación** | Notificaciones y avisos | ✅ Completo |
+| 🔧 **Mantenimiento** | Órdenes de trabajo y seguimiento | ✅ Completo |
+| 🔒 **Seguridad** | Control de acceso y visitantes | ✅ Completo |
+| ⚖️ **Legal** | Cumplimiento normativo | ✅ Completo |
+| 📊 **Reportes** | Dashboard y analytics | ✅ Completo |
 
 ## Características Principales
 
@@ -47,64 +82,113 @@ Sistema integral para la administración y gestión de Propiedades Horizontales 
 - Puerto 5003 disponible para la aplicación web
 - Puerto 5435 disponible para la base de datos PostgreSQL
 
-## Instalación
+## 🚀 Instalación Rápida
 
-1. Clonar el repositorio:
-   ```
-   git clone https://github.com/tu-usuario/proyecto_ph.git
-   cd proyecto_ph
+### Prerrequisitos
+- Docker y Docker Compose
+- Git
+
+### Instalación
+
+1. **Clonar el repositorio**
+   ```bash
+   git clone https://github.com/Geopublicidad507/servicios.git
+   cd servicios
    ```
 
-2. Iniciar los contenedores con Docker Compose:
-   ```
+2. **Iniciar con Docker Compose**
+   ```bash
    docker-compose up -d
    ```
 
-3. Acceder a la aplicación:
+3. **Acceder a la aplicación**
    ```
-   http://localhost:5003
+   🌐 http://localhost:5003
    ```
 
+### 🔧 Configuración de Desarrollo
 
-## Tecnologías Utilizadas
+Para desarrollo local sin Docker:
+```bash
+# Instalar dependencias
+pip install -r requirements.txt
 
-- **Backend**: Python con Flask
-- **Frontend**: Bootstrap, HTML5, CSS3, JavaScript
-- **Base de datos**: PostgreSQL
-- **Contenedores**: Docker y Docker Compose
-- **Gráficos**: Chart.js
-- **Reportes**: ReportLab
+# Configurar base de datos
+export DATABASE_URL="sqlite:///ph_control.db"
 
-## Estructura del Proyecto
-
-```
-proyecto_ph/
-├── app.py                 # Punto de entrada de la aplicación
-├── models.py              # Modelos de datos
-├── routes/                # Rutas y controladores
-├── templates/             # Plantillas HTML
-├── static/                # Archivos estáticos (CSS, JS)
-├── utils/                 # Utilidades y helpers
-├── docker-compose.yml     # Configuración de Docker Compose
-├── Dockerfile             # Configuración de Docker
-└── requirements.txt       # Dependencias de Python
+# Ejecutar aplicación
+python app.py
 ```
 
-## Desarrollo
 
-Para ejecutar la aplicación en modo desarrollo:
+## 🛠️ Tecnologías Utilizadas
+
+### Backend
+- **🐍 Python 3.11+** con **Flask** framework
+- **🗄️ PostgreSQL** como base de datos principal
+- **🔐 Flask-Login** para autenticación
+- **📧 Flask-Mail** para notificaciones por email
+
+### Frontend
+- **🎨 Bootstrap 5** para UI responsiva
+- **📊 Chart.js** para gráficos y analytics
+- **⚡ JavaScript ES6+** con AJAX
+- **🎯 jQuery** para interactividad
+
+### DevOps & Deployment
+- **🐳 Docker** y **Docker Compose**
+- **☁️ Koyeb** para deployment en la nube
+- **🔄 GitHub Actions** para CI/CD
+
+### Utilidades
+- **📄 ReportLab** para generación de PDFs
+- **📅 Schedule** para tareas programadas
+- **🔒 Werkzeug** para seguridad
+
+## 📁 Arquitectura del Proyecto
 
 ```
-docker-compose up
+ph-control/
+├── 📁 routes/           # Controladores de la aplicación
+│   ├── api.py          # Endpoints de API REST
+│   ├── auth.py         # Autenticación y usuarios
+│   ├── dashboard.py    # Paneles de control
+│   └── ...
+├── 📁 models/          # Modelos de datos SQLAlchemy
+├── 📁 templates/       # Plantillas Jinja2
+├── 📁 static/          # CSS, JS, imágenes
+├── 📁 utils/           # Utilidades y helpers
+├── 🐳 docker-compose.yml
+├── 📋 requirements.txt
+└── 🚀 app.py           # Punto de entrada
 ```
 
-Para reconstruir los contenedores después de cambios:
+## 🤝 Contribución
 
-```
-docker-compose build
-docker-compose up -d
-```
+1. Fork el proyecto
+2. Crea tu rama de feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
 
-## Licencia
+## 📞 Soporte
 
-Este proyecto está licenciado bajo los términos de la licencia MIT.
+Para soporte técnico o consultas:
+- 📧 **Email**: soporte@phcontrol.com
+- 🐛 **Issues**: [GitHub Issues](https://github.com/Geopublicidad507/servicios/issues)
+- 📖 **Documentación**: [Wiki](https://github.com/Geopublicidad507/servicios/wiki)
+
+## 📜 Licencia
+
+Este proyecto está licenciado bajo la **Licencia MIT** - ver el archivo [LICENSE](LICENSE) para más detalles.
+
+---
+
+<div align="center">
+  <p>Desarrollado con ❤️ para la comunidad de Propiedades Horizontales de Panamá</p>
+  <p>
+    <a href="https://awkward-gwendolen-consultor351-b4be20ea.koyeb.app/">🌐 Demo en Vivo</a> •
+    <a href="https://github.com/Geopublicidad507/servicios">📂 Código Fuente</a> •
+    <a href="https://github.com/Geopublicidad507/servicios/issues">🐛 Reportar Bug</a>
+  </p>
+</div>
