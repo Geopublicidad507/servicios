@@ -48,7 +48,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // MongoDB connection
-const MONGO_URI = 'mongodb+srv://geopublicidad507_db_user:Cdeg14650641*@consultor351.yv7gbsp.mongodb.net/miDB?retryWrites=true&w=majority';
+const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/ph_control';
 
 mongoose.connect(MONGO_URI)
   .then(() => console.log('✅ MongoDB conectado'))

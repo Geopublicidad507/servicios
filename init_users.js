@@ -27,11 +27,11 @@ const User = mongoose.model('User', UserSchema);
 const initialUsers = [
   // Administradores Generales
   {
-    email: 'admin@phcontrol.com',
+    email: process.env.ADMIN_EMAIL || 'admin@phcontrol.com',
     firstName: 'Administrador',
     lastName: 'General',
     phone: '+507 6000-0001',
-    password: 'admin123',
+    password: process.env.ADMIN_PASSWORD || 'admin123',
     role: 'admin_general'
   },
   {
