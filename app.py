@@ -41,6 +41,20 @@ def index():
         }
     })
 
+@app.route('/favicon.ico')
+def favicon():
+    return '', 204
+
+@app.route('/login')
+def login_page():
+    return jsonify({'message': 'Use POST /api/auth/login for authentication'})
+
+@app.route('/<path:filename>')
+def catch_all(filename):
+    if filename.endswith(('.woff', '.woff2', '.ttf', '.eot')):
+        return '', 404
+    return jsonify({'error': 'Endpoint not found', 'available_endpoints': ['/api/auth/login', '/api/users', '/health']}), 404
+
 @app.route('/health')
 def health():
     return jsonify({
