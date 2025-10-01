@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from flask_login import LoginManager
 import os
 from datetime import datetime
@@ -50,16 +50,24 @@ def login_page():
     return jsonify({'message': 'Use POST /api/auth/login for authentication'})
 
 @app.route('/auth/login')
-def auth_login_redirect():
-    return jsonify({
-        'message': 'Use POST /api/auth/login for authentication',
-        'endpoint': '/api/auth/login',
-        'method': 'POST',
-        'example': {
-            'email': 'admin@phcontrol.com',
-            'password': 'admin123'
-        }
-    })
+def auth_login_page():
+    return render_template('auth/login.html')
+
+@app.route('/login')
+def login_redirect():
+    return render_template('auth/login.html')
+
+@app.route('/dashboard')
+def dashboard():
+    return jsonify({'message': 'Dashboard - Requiere autenticación', 'login_url': '/auth/login'})
+
+@app.route('/dashboard/admin')
+def dashboard_admin():
+    return jsonify({'message': 'Dashboard Admin - Requiere autenticación', 'login_url': '/auth/login'})
+
+@app.route('/dashboard/resident')
+def dashboard_resident():
+    return jsonify({'message': 'Dashboard Residente - Requiere autenticación', 'login_url': '/auth/login'})
 
 @app.route('/<path:filename>')
 def catch_all(filename):
