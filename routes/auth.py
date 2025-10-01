@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from models_mongo import User
 from datetime import datetime
-from utils.audit import audit_logger, log_login_attempt
+# from utils.audit import audit_logger, log_login_attempt
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -33,7 +33,7 @@ def login():
         if user:
             
             # Log successful login
-            log_login_attempt(email, success=True)
+            # log_login_attempt(email, success=True)
             
             next_page = request.args.get('next')
             if next_page:
@@ -48,7 +48,7 @@ def login():
                 return redirect(url_for('dashboard.resident'))
         else:
             # Log failed login attempt
-            log_login_attempt(email, success=False, error_message='Invalid credentials')
+            # log_login_attempt(email, success=False, error_message='Invalid credentials')
             flash('Email o contraseña incorrectos.', 'error')
     
     return render_template('auth/login.html')
@@ -107,7 +107,7 @@ def register():
 @login_required
 def logout():
     # Log logout before actually logging out
-    audit_logger.log('logout', resource_type='user', resource_id=current_user.id)
+    # audit_logger.log('logout', resource_type='user', resource_id=current_user.id)
     logout_user()
     flash('Has cerrado sesión exitosamente.', 'info')
     return redirect(url_for('auth.login'))
