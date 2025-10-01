@@ -10,7 +10,7 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('dashboard.index'))
+        return redirect('/dashboard')
     
     if request.method == 'POST':
         email = request.form.get('email')
@@ -97,7 +97,7 @@ def register():
         try:
             user.save()
             flash('Registro exitoso. Puedes iniciar sesión ahora.', 'success')
-            return redirect(url_for('auth.login'))
+            return redirect('/auth/login')
         except Exception as e:
             flash('Error al crear la cuenta. Intenta nuevamente.', 'error')
     
@@ -110,7 +110,7 @@ def logout():
     # audit_logger.log('logout', resource_type='user', resource_id=current_user.id)
     logout_user()
     flash('Has cerrado sesión exitosamente.', 'info')
-    return redirect(url_for('auth.login'))
+    return redirect('/auth/login')
 
 @auth_bp.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
