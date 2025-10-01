@@ -69,7 +69,14 @@ def login_redirect():
 
 @app.route('/dashboard')
 def dashboard():
-    return jsonify({'message': 'Dashboard - Requiere autenticación', 'login_url': '/auth/login'})
+    from flask_login import login_required, current_user
+    if not current_user.is_authenticated:
+        return jsonify({'message': 'Dashboard - Requiere autenticación', 'login_url': '/auth/login'})
+    return render_template('dashboard/index.html', 
+                         stats={'total_properties': 1, 'total_units': 10, 'pending_tasks': 2, 'monthly_income': 7500},
+                         recent_activities=[],
+                         alerts=[],
+                         unread_notifications_count=0)
 
 @app.route('/dashboard/admin')
 def dashboard_admin():
