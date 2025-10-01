@@ -8,17 +8,14 @@ const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key';
 
 // Login
-router.post('/login', [
-  body('email').isEmail().normalizeEmail(),
-  body('password').isLength({ min: 6 })
-], async (req: Request, res: Response) => {
+router.post('/login', async (req: Request, res: Response) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
     const { email, password } = req.body;
+
+    // Basic validation
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email y contraseña son requeridos' });
+    }
 
     const user = await User.findOne({ email, isActive: true });
     if (!user) {

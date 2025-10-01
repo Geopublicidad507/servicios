@@ -230,7 +230,7 @@
                         <a class="nav-link" href="#contact">Contacto</a>
                     </li>
                     <li class="nav-item ms-2">
-                        <a class="btn btn-primary btn-custom" href="https://awkward-gwendolen-consultor351-b4be20ea.koyeb.app/auth/login">Iniciar Sesión</a>
+                        <a class="btn btn-primary btn-custom" href="https://printed-binny-consultor351-faafa5db.koyeb.app/auth/login">Iniciar Sesión</a>
                     </li>
                 </ul>
             </div>
@@ -250,7 +250,7 @@
                         con la Ley 284 de Propiedad Horizontal de la República de Panamá.
                     </p>
                     <div class="d-flex flex-wrap gap-3">
-                        <a href="https://awkward-gwendolen-consultor351-b4be20ea.koyeb.app/auth/register" class="btn btn-warning btn-custom btn-lg">
+                        <a href="https://printed-binny-consultor351-faafa5db.koyeb.app/auth/register" class="btn btn-warning btn-custom btn-lg">
                             <i class="bi bi-rocket-takeoff"></i> Comenzar Gratis
                         </a>
                         <a href="#features" class="btn btn-outline-light btn-custom btn-lg">
@@ -471,7 +471,7 @@
                                 <li class="mb-2"><i class="bi bi-x text-danger"></i> Reportes avanzados</li>
                                 <li class="mb-2"><i class="bi bi-x text-danger"></i> API integración</li>
                             </ul>
-                            <a href="https://awkward-gwendolen-consultor351-b4be20ea.koyeb.app/auth/register" class="btn btn-outline-primary btn-custom w-100">
+                            <a href="https://printed-binny-consultor351-faafa5db.koyeb.app/auth/register" class="btn btn-outline-primary btn-custom w-100">
                                 Comenzar Prueba
                             </a>
                         </div>
@@ -493,7 +493,7 @@
                                 <li class="mb-2"><i class="bi bi-check text-success"></i> Backup automático</li>
                                 <li class="mb-2"><i class="bi bi-check text-success"></i> API básica</li>
                             </ul>
-                            <a href="https://awkward-gwendolen-consultor351-b4be20ea.koyeb.app/auth/register" class="btn btn-primary btn-custom w-100">
+                            <a href="https://printed-binny-consultor351-faafa5db.koyeb.app/auth/register" class="btn btn-primary btn-custom w-100">
                                 Más Popular
                             </a>
                         </div>
@@ -625,7 +625,7 @@
                         Únete a cientos de administradores que ya confían en PH Control para gestionar sus propiedades horizontales de manera eficiente.
                     </p>
                     <div class="d-flex flex-wrap justify-content-center gap-3">
-                        <a href="https://awkward-gwendolen-consultor351-b4be20ea.koyeb.app/auth/register" class="btn btn-warning btn-custom btn-lg">
+                        <a href="https://printed-binny-consultor351-faafa5db.koyeb.app/auth/register" class="btn btn-warning btn-custom btn-lg">
                             <i class="bi bi-rocket-takeoff"></i> Comenzar Prueba Gratuita
                         </a>
                         <a href="#contact" class="btn btn-outline-light btn-custom btn-lg">
@@ -884,100 +884,6 @@
                 button.disabled = false;
             }, 3000);
         });
-
-        // Login functionality
-        const API_BASE = 'http://localhost:3000/api';
-        let currentUser = null;
-        let token = localStorage.getItem('token');
-
-        // Handle login/register button clicks
-        document.querySelectorAll('a[href*="auth/login"], a[href*="auth/register"]').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                showLoginModal();
-            });
-        });
-
-        function showLoginModal() {
-            // Create login modal
-            const modal = document.createElement('div');
-            modal.className = 'modal fade';
-            modal.innerHTML = `
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Iniciar Sesión</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="loginForm">
-                                <div class="mb-3">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="loginEmail" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Contraseña</label>
-                                    <input type="password" class="form-control" id="loginPassword" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
-                            </form>
-                            <div class="text-center mt-3">
-                                <small class="text-muted">Credenciales: admin@phcontrol.com / admin123</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            document.body.appendChild(modal);
-            const bsModal = new bootstrap.Modal(modal);
-            bsModal.show();
-
-            // Handle login form submission
-            document.getElementById('loginForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-
-                const email = document.getElementById('loginEmail').value;
-                const password = document.getElementById('loginPassword').value;
-
-                try {
-                    const response = await fetch(`${API_BASE}/auth/login`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password })
-                    });
-
-                    const data = await response.json();
-
-                    if (response.ok) {
-                        token = data.token;
-                        currentUser = data.user;
-                        localStorage.setItem('token', token);
-                        bsModal.hide();
-                        showDashboard();
-                    } else {
-                        alert(data.message || 'Error de login');
-                    }
-                } catch (error) {
-                    alert('Error de conexión');
-                }
-            });
-
-            modal.addEventListener('hidden.bs.modal', function() {
-                document.body.removeChild(modal);
-            });
-        }
-
-        function showDashboard() {
-            // Redirect to dashboard or show dashboard content
-            window.location.href = '/dashboard';
-        }
-
-        // Check if user is logged in on page load
-        if (token) {
-            // User is logged in, show dashboard
-            showDashboard();
-        }
     </script>
 
 </body>

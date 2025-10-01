@@ -1,335 +1,201 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Administrativo - PH Control</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="bi bi-building"></i> PH Control
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/auth/profile">
+                    <i class="bi bi-person"></i> Perfil
+                </a>
+                <a class="nav-link" href="#" onclick="logout()">
+                    <i class="bi bi-box-arrow-right"></i> Salir
+                </a>
+            </div>
+        </div>
+    </nav>
 
-{% block title %}Dashboard Administrativo - PH Control{% endblock %}
-
-{% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Dashboard Administrativo</h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
-        <div class="btn-group me-2">
-            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshDashboard()">
+    <div class="container-fluid mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2">Dashboard Administrativo</h1>
+            <button class="btn btn-outline-secondary" onclick="refreshDashboard()">
                 <i class="bi bi-arrow-clockwise"></i> Actualizar
             </button>
         </div>
-    </div>
-</div>
 
-<!-- KPI Cards -->
-<div class="row mb-4">
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-primary shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                            Propiedades
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_properties }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-building fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-success shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Ingresos del Mes
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">
-                            ${{ "%.2f"|format(monthly_income) }}
-                        </div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-cash-stack fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-info shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                            Unidades Totales
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_units }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-house fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-warning shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                            Tareas Pendientes
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_tasks }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-tools fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Charts Row -->
-<div class="row">
-    <!-- Financial Chart -->
-    <div class="col-xl-8 col-lg-7">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Resumen Financiero (Últimos 12 Meses)</h6>
-            </div>
-            <div class="card-body">
-                <div class="chart-area">
-                    <canvas id="financialChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Properties Pie Chart -->
-    <div class="col-xl-4 col-lg-5">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Estado de Propiedades</h6>
-            </div>
-            <div class="card-body">
-                <div class="chart-pie pt-4 pb-2">
-                    <canvas id="propertiesChart"></canvas>
-                </div>
-                <div class="mt-4 text-center small">
-                    <span class="mr-2">
-                        <i class="bi bi-circle-fill text-primary"></i> Activas
-                    </span>
-                    <span class="mr-2">
-                        <i class="bi bi-circle-fill text-success"></i> Con Pagos al Día
-                    </span>
-                    <span class="mr-2">
-                        <i class="bi bi-circle-fill text-warning"></i> Con Atrasos
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Recent Activity -->
-<div class="row">
-    <!-- Recent Payments -->
-    <div class="col-lg-6 mb-4">
-        <div class="card shadow">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Pagos Recientes</h6>
-            </div>
-            <div class="card-body">
-                {% if recent_payments %}
-                <div class="table-responsive">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Unidad</th>
-                                <th>Monto</th>
-                                <th>Tipo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for payment in recent_payments %}
-                            <tr>
-                                <td>{{ payment.payment_date.strftime('%d/%m') }}</td>
-                                <td>{{ payment.unit.unit_identifier }}</td>
-                                <td>${{ "%.2f"|format(payment.amount) }}</td>
-                                <td>
-                                    <span class="badge bg-primary">{{ payment.payment_type }}</span>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="text-center">
-                    <a href="{{ url_for('financial.payments') }}" class="btn btn-sm btn-primary">
-                        Ver Todos los Pagos
-                    </a>
-                </div>
-                {% else %}
-                <p class="text-muted text-center">No hay pagos recientes</p>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Overdue Payments -->
-    <div class="col-lg-6 mb-4">
-        <div class="card shadow">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-danger">Pagos Vencidos ({{ overdue_payments }})</h6>
-            </div>
-            <div class="card-body">
-                {% if overdue_payments > 0 %}
-                <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    Hay {{ overdue_payments }} pagos vencidos que requieren atención.
-                </div>
-                <div class="text-center">
-                    <a href="{{ url_for('financial.payments', status='overdue') }}" class="btn btn-sm btn-warning">
-                        Ver Pagos Vencidos
-                    </a>
-                </div>
-                {% else %}
-                <div class="alert alert-success">
-                    <i class="bi bi-check-circle"></i>
-                    No hay pagos vencidos. ¡Excelente!
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Properties List -->
-<div class="card shadow mb-4">
-    <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Mis Propiedades</h6>
-    </div>
-    <div class="card-body">
-        {% if properties %}
-        <div class="row">
-            {% for property in properties %}
-            <div class="col-md-6 col-lg-4 mb-3">
-                <div class="card border-primary">
+        <!-- KPI Cards -->
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-start border-primary border-4 shadow h-100">
                     <div class="card-body">
-                        <h6 class="card-title">{{ property.name }}</h6>
-                        <p class="card-text">
-                            <small class="text-muted">{{ property.code }}</small><br>
-                            <strong>{{ property.total_units }}</strong> unidades<br>
-                            <small>{{ property.address[:50] }}{% if property.address|length > 50 %}...{% endif %}</small>
-                        </p>
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ url_for('admin.view_property', property_id=property.id) }}" 
-                               class="btn btn-sm btn-outline-primary">Ver Detalles</a>
-                            <button class="btn btn-sm btn-outline-info" 
-                                    onclick="loadPropertyStats({{ property.id }})">
-                                <i class="bi bi-graph-up"></i>
-                            </button>
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs fw-bold text-primary text-uppercase mb-1">Propiedades</div>
+                                <div class="h5 mb-0 fw-bold text-gray-800">5</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-building fs-2 text-muted"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            {% endfor %}
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-start border-success border-4 shadow h-100">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs fw-bold text-success text-uppercase mb-1">Ingresos del Mes</div>
+                                <div class="h5 mb-0 fw-bold text-gray-800">$15,420.00</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-cash-stack fs-2 text-muted"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-start border-info border-4 shadow h-100">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs fw-bold text-info text-uppercase mb-1">Unidades Totales</div>
+                                <div class="h5 mb-0 fw-bold text-gray-800">125</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-house fs-2 text-muted"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-start border-warning border-4 shadow h-100">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="text-xs fw-bold text-warning text-uppercase mb-1">Tareas Pendientes</div>
+                                <div class="h5 mb-0 fw-bold text-gray-800">8</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-tools fs-2 text-muted"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        {% else %}
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i>
-            No tienes propiedades asignadas.
+
+        <!-- Charts Row -->
+        <div class="row">
+            <div class="col-xl-8 col-lg-7">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 fw-bold text-primary">Resumen Financiero (Últimos 12 Meses)</h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="financialChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-4 col-lg-5">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 fw-bold text-primary">Estado de Propiedades</h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="propertiesChart"></canvas>
+                        <div class="mt-4 text-center small">
+                            <span class="me-2">
+                                <i class="bi bi-circle-fill text-primary"></i> Activas
+                            </span>
+                            <span class="me-2">
+                                <i class="bi bi-circle-fill text-success"></i> Al Día
+                            </span>
+                            <span class="me-2">
+                                <i class="bi bi-circle-fill text-warning"></i> Atrasos
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        {% endif %}
+
+        <!-- Quick Actions -->
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 fw-bold text-primary">Acciones Rápidas</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <a href="/admin/users" class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-people"></i> Gestionar Usuarios
+                                </a>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <a href="/admin/properties" class="btn btn-outline-success w-100">
+                                    <i class="bi bi-building"></i> Propiedades
+                                </a>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <a href="/financial" class="btn btn-outline-info w-100">
+                                    <i class="bi bi-cash-stack"></i> Finanzas
+                                </a>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <a href="/maintenance" class="btn btn-outline-warning w-100">
+                                    <i class="bi bi-tools"></i> Mantenimiento
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 fw-bold text-danger">Alertas del Sistema</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            3 pagos vencidos requieren atención.
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            2 tareas de mantenimiento programadas para hoy.
+                        </div>
+                        <div class="text-center">
+                            <a href="/communication/tickets" class="btn btn-sm btn-primary">
+                                Ver Todos los Tickets
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
-{% endblock %}
 
-{% block extra_scripts %}
-<script>
-// Financial Chart
-const ctx = document.getElementById('financialChart').getContext('2d');
-const financialChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: {{ months|tojson }},
-        datasets: [{
-            label: 'Ingresos',
-            data: {{ income_data|tojson }},
-            borderColor: 'rgb(75, 192, 192)',
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            tension: 0.1
-        }, {
-            label: 'Gastos',
-            data: {{ expense_data|tojson }},
-            borderColor: 'rgb(255, 99, 132)',
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-            tension: 0.1
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    callback: function(value) {
-                        return '$' + value.toLocaleString();
-                    }
-                }
-            }
-        }
-    }
-});
-
-// Properties Chart
-const ctx2 = document.getElementById('propertiesChart').getContext('2d');
-const propertiesChart = new Chart(ctx2, {
-    type: 'doughnut',
-    data: {
-        labels: ['Activas', 'Con Pagos al Día', 'Con Atrasos'],
-        datasets: [{
-            data: [{{ total_properties }}, {{ total_properties - overdue_payments }}, {{ overdue_payments }}],
-            backgroundColor: ['#4e73df', '#1cc88a', '#f6c23e'],
-            hoverBackgroundColor: ['#2e59d9', '#17a673', '#f4b619'],
-            hoverBorderColor: "rgba(234, 236, 244, 1)",
-        }],
-    },
-    options: {
-        maintainAspectRatio: false,
-        tooltips: {
-            backgroundColor: "rgb(255,255,255)",
-            bodyFontColor: "#858796",
-            borderColor: '#dddfeb',
-            borderWidth: 1,
-            xPadding: 15,
-            yPadding: 15,
-            displayColors: false,
-            caretPadding: 10,
-        },
-        legend: {
-            display: false
-        },
-        cutoutPercentage: 80,
-    },
-});
-
-function refreshDashboard() {
-    location.reload();
-}
-
-function loadPropertyStats(propertyId) {
-    // This would load property-specific statistics
-    fetch(`/dashboard/api/stats/property/${propertyId}`)
-        .then(response => response.json())
-        .then(data => {
-            // Display property stats in a modal or update UI
-            console.log('Property stats:', data);
-        })
-        .catch(error => console.error('Error:', error));
-}
-</script>
-{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
