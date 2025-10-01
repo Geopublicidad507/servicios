@@ -32,8 +32,8 @@ def load_user(user_id):
 # Routes
 @app.route('/')
 def index():
-    from flask import redirect, url_for
-    return redirect(url_for('auth.login'))
+    from flask import redirect
+    return redirect('/auth/login')
 
 @app.route('/api')
 def api_info():
@@ -250,4 +250,5 @@ if __name__ == '__main__':
     print(f'🚀 Iniciando PH Control API en puerto {port}')
     print('🌐 MongoDB Cloud conectado')
     print('📋 Credenciales: admin@phcontrol.com / admin123')
+    print('🌍 URL: https://printed-binny-consultor351-faafa5db.koyeb.app/')
     app.run(debug=False, host='0.0.0.0', port=port)
