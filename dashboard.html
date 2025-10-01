@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - PH Control</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-building"></i> PH Control
+            </a>
+            <div id="userMenu" class="d-none">
+                <span class="navbar-text me-3" id="userName"></span>
+                <button class="btn btn-outline-light btn-sm" onclick="logout()">Cerrar Sesión</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">Dashboard</h1>
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h4 id="totalProperties">0</h4>
+                        <p class="mb-0">Propiedades</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h4 id="totalUsers">0</h4>
+                        <p class="mb-0">Usuarios</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <h4 id="totalTickets">0</h4>
+                        <p class="mb-0">Tickets</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h4 id="unreadNotifications">0</h4>
+                        <p class="mb-0">Notificaciones</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Propiedades</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="propertiesList">
+                            <p class="text-muted">Cargando propiedades...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Tickets Recientes</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="ticketsList">
+                            <p class="text-muted">Cargando tickets...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let currentUser = null;
+        let token = localStorage.getItem('token');
+
+        // Check authentication
+        if (!token) {
+            window.location.href = '/';
+        }
+
+        async function loadDashboardData() {
+            try {
+                // Load properties
+                const propertiesResponse = await fetch(`${API_BASE}/properties`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const properties = await propertiesResponse.json();
+                document.getElementById('totalProperties').textContent = properties.length;
+
+                // Display properties
+                const propertiesList = document.getElementById('propertiesList');
+                if (properties.length > 0) {
+                    propertiesList.innerHTML = properties.map(prop =>
+                        `<div class="mb-2"><strong>${prop.name}</strong> - ${prop.address}</div>`
+                    ).join('');
+                } else {
+                    propertiesList.innerHTML = '<p class="text-muted">No hay propiedades registradas</p>';
+                }
+
+                // Load users
+                const usersResponse = await fetch(`${API_BASE}/users`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const users = await usersResponse.json();
+                document.getElementById('totalUsers').textContent = users.length;
+
+                // Load tickets
+                const ticketsResponse = await fetch(`${API_BASE}/tickets`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const ticketsData = await ticketsResponse.json();
+                document.getElementById('totalTickets').textContent = ticketsData.tickets.length;
+
+                // Display tickets
+                const ticketsList = document.getElementById('ticketsList');
+                if (ticketsData.tickets.length > 0) {
+                    ticketsList.innerHTML = ticketsData.tickets.slice(0, 5).map(ticket =>
+                        `<div class="mb-2">
+                            <strong>${ticket.title}</strong>
+                            <br><small class="text-muted">${ticket.category} - ${ticket.status}</small>
+                        </div>`
+                    ).join('');
+                } else {
+                    ticketsList.innerHTML = '<p class="text-muted">No hay tickets</p>';
+                }
+
+                // Load notifications count
+                const notificationsResponse = await fetch(`${API_BASE}/notifications/unread-count?userId=${currentUser.id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const notificationsData = await notificationsResponse.json();
+                document.getElementById('unreadNotifications').textContent = notificationsData.count;
+
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                if (error.message.includes('401')) {
+                    logout();
+                }
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            token = null;
+            currentUser = null;
+            window.location.href = '/';
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            // Decode token to get user info (simplified)
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                currentUser = payload;
+                document.getElementById('userName').textContent =
+                    `${payload.firstName || 'Usuario'} ${payload.lastName || ''}`;
+                document.getElementById('userMenu').classList.remove('d-none');
+                loadDashboardData();
+            } catch (error) {
+                logout();
+            }
+        });
+    </script>
+</body>
+</html>

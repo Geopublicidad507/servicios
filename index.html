@@ -884,6 +884,100 @@
                 button.disabled = false;
             }, 3000);
         });
+
+        // Login functionality
+        const API_BASE = 'http://localhost:3000/api';
+        let currentUser = null;
+        let token = localStorage.getItem('token');
+
+        // Handle login/register button clicks
+        document.querySelectorAll('a[href*="auth/login"], a[href*="auth/register"]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                showLoginModal();
+            });
+        });
+
+        function showLoginModal() {
+            // Create login modal
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.innerHTML = `
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Iniciar Sesión</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="loginForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="loginEmail" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Contraseña</label>
+                                    <input type="password" class="form-control" id="loginPassword" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
+                            </form>
+                            <div class="text-center mt-3">
+                                <small class="text-muted">Credenciales: admin@phcontrol.com / admin123</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.show();
+
+            // Handle login form submission
+            document.getElementById('loginForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+
+                try {
+                    const response = await fetch(`${API_BASE}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        token = data.token;
+                        currentUser = data.user;
+                        localStorage.setItem('token', token);
+                        bsModal.hide();
+                        showDashboard();
+                    } else {
+                        alert(data.message || 'Error de login');
+                    }
+                } catch (error) {
+                    alert('Error de conexión');
+                }
+            });
+
+            modal.addEventListener('hidden.bs.modal', function() {
+                document.body.removeChild(modal);
+            });
+        }
+
+        function showDashboard() {
+            // Redirect to dashboard or show dashboard content
+            window.location.href = '/dashboard';
+        }
+
+        // Check if user is logged in on page load
+        if (token) {
+            // User is logged in, show dashboard
+            showDashboard();
+        }
     </script>
 
 </body>

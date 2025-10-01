@@ -12,7 +12,7 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom CSS -->
-    <link href="/static/css/style.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
     
     {% block extra_head %}{% endblock %}
 </head>
@@ -21,7 +21,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/dashboard">
+            <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">
                 <i class="bi bi-building"></i> PH Control
             </a>
             
@@ -33,7 +33,7 @@
                 <ul class="navbar-nav me-auto">
                     {% if current_user.role in ['admin_general', 'admin_ph'] %}
                     <li class="nav-item">
-                        <a class="nav-link" href="/dashboard">
+                        <a class="nav-link" href="{{ url_for('dashboard.index') }}">
                             <i class="bi bi-speedometer2"></i> Dashboard
                         </a>
                     </li>
@@ -42,10 +42,10 @@
                             <i class="bi bi-cash-stack"></i> Financiero
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/financial">Resumen</a></li>
-                            <li><a class="dropdown-item" href="/financial/payments">Pagos</a></li>
-                            <li><a class="dropdown-item" href="/financial/expenses">Gastos</a></li>
-                            <li><a class="dropdown-item" href="/financial/reports">Reportes</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('financial.index') }}">Resumen</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('financial.payments') }}">Pagos</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('financial.expenses') }}">Gastos</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('financial.reports') }}">Reportes</a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -53,9 +53,9 @@
                             <i class="bi bi-chat-dots"></i> Comunicación
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/communication/notifications">Notificaciones</a></li>
-                            <li><a class="dropdown-item" href="/communication/tickets">Tickets</a></li>
-                            <li><a class="dropdown-item" href="/communication/announcements">Avisos</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('communication.notifications') }}">Notificaciones</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('communication.tickets') }}">Tickets</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('communication.announcements') }}">Avisos</a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -63,9 +63,9 @@
                             <i class="bi bi-tools"></i> Mantenimiento
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/maintenance">Resumen</a></li>
-                            <li><a class="dropdown-item" href="/maintenance/tasks">Tareas</a></li>
-                            <li><a class="dropdown-item" href="/maintenance/schedule">Calendario</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('maintenance.index') }}">Resumen</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('maintenance.tasks') }}">Tareas</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('maintenance.schedule') }}">Calendario</a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -73,9 +73,9 @@
                             <i class="bi bi-shield-check"></i> Seguridad
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/security">Resumen</a></li>
-                            <li><a class="dropdown-item" href="/security/visitors">Visitantes</a></li>
-                            <li><a class="dropdown-item" href="/security/access_control">Control de Acceso</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('security.index') }}">Resumen</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('security.visitors') }}">Visitantes</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('security.access_control') }}">Control de Acceso</a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -83,13 +83,13 @@
                             <i class="bi bi-file-earmark-text"></i> Legal
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/legal">Resumen</a></li>
-                            <li><a class="dropdown-item" href="/legal/assemblies">Asambleas</a></li>
-                            <li><a class="dropdown-item" href="/legal/compliance">Cumplimiento</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('legal.index') }}">Resumen</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('legal.assemblies') }}">Asambleas</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('legal.compliance') }}">Cumplimiento</a></li>
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/documents">
+                        <a class="nav-link" href="{{ url_for('documents.index') }}">
                             <i class="bi bi-folder"></i> Documentos
                         </a>
                     </li>
@@ -99,35 +99,35 @@
                             <i class="bi bi-gear"></i> Administración
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/admin">Dashboard</a></li>
-                            <li><a class="dropdown-item" href="/admin/properties">Propiedades</a></li>
-                            <li><a class="dropdown-item" href="/admin/users">Usuarios</a></li>
-                            <li><a class="dropdown-item" href="/backup">Backups</a></li>
-                            <li><a class="dropdown-item" href="/audit">Auditoría</a></li>
-                            <li><a class="dropdown-item" href="/reports">Reportes</a></li>
-                            <li><a class="dropdown-item" href="/admin/system">Sistema</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.properties') }}">Propiedades</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.users') }}">Usuarios</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('backup.index') }}">Backups</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('audit.index') }}">Auditoría</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('reports.index') }}">Reportes</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.system') }}">Sistema</a></li>
                         </ul>
                     </li>
                     {% endif %}
                     {% else %}
                     <!-- Resident menu -->
                     <li class="nav-item">
-                        <a class="nav-link" href="/dashboard/resident">
+                        <a class="nav-link" href="{{ url_for('dashboard.resident') }}">
                             <i class="bi bi-house"></i> Mi Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/communication/tickets">
+                        <a class="nav-link" href="{{ url_for('communication.tickets') }}">
                             <i class="bi bi-ticket"></i> Mis Tickets
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/documents">
+                        <a class="nav-link" href="{{ url_for('documents.index') }}">
                             <i class="bi bi-folder"></i> Documentos
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/communication/announcements">
+                        <a class="nav-link" href="{{ url_for('communication.announcements') }}">
                             <i class="bi bi-megaphone"></i> Avisos
                         </a>
                     </li>
@@ -157,7 +157,7 @@
                             </li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <a class="dropdown-item text-center" href="/notifications">
+                                <a class="dropdown-item text-center" href="{{ url_for('notifications.index') }}">
                                     <i class="bi bi-list"></i> Ver todas las notificaciones
                                 </a>
                             </li>
@@ -170,14 +170,14 @@
                             <i class="bi bi-person-circle"></i> {{ current_user.full_name }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="/auth/profile">
+                            <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">
                                 <i class="bi bi-person"></i> Mi Perfil
                             </a></li>
-                            <li><a class="dropdown-item" href="/communication/notifications">
+                            <li><a class="dropdown-item" href="{{ url_for('communication.notifications') }}">
                                 <i class="bi bi-bell"></i> Notificaciones
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/auth/logout">
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
                                 <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
                             </a></li>
                         </ul>
@@ -292,7 +292,7 @@
     {% endif %}
     
     <!-- Custom JS -->
-    <script src="/static/js/app.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     
     {% block extra_scripts %}{% endblock %}
 </body>
