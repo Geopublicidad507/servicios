@@ -8,6 +8,7 @@ import jwt
 
 # Import blueprints
 from routes.auth import auth_bp
+from routes.api import api_bp
 
 app = Flask(__name__)
 
@@ -55,17 +56,7 @@ def favicon():
     from flask import send_from_directory
     return send_from_directory('static', 'favicon.ico')
 
-@app.route('/login')
-def login_page():
-    return jsonify({'message': 'Use POST /api/auth/login for authentication'})
-
-@app.route('/auth/login')
-def auth_login_page():
-    return render_template('auth/login.html', unread_notifications_count=0)
-
-@app.route('/login')
-def login_redirect():
-    return render_template('auth/login.html')
+# Removed conflicting login routes - handled by auth blueprint
 
 @app.route('/dashboard')
 def dashboard():
@@ -232,6 +223,7 @@ def catch_all(filename):
             return send_from_directory('static', filename)
         except:
             return '', 404
+    from flask import redirect
     return redirect('/auth/login')
 
 @app.route('/health')
@@ -371,6 +363,7 @@ with app.app_context():
 
 # Register blueprints
 app.register_blueprint(auth_bp, url_prefix='/auth')
+app.register_blueprint(api_bp, url_prefix='/api')
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5003))
