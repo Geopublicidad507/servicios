@@ -4,7 +4,7 @@
 
 [![Estado del Proyecto](https://img.shields.io/badge/Estado-Desarrollo-green.svg)](https://github.com/Geopublicidad507/servicios)
 [![Licencia](https://img.shields.io/badge/Licencia-MIT-blue.svg)](LICENSE)
-[![Tecnología](https://img.shields.io/badge/Python-Flask-orange.svg)](https://flask.palletsprojects.com/)
+[![Tecnología](https://img.shields.io/badge/TypeScript-Node.js-blue.svg)](https://nodejs.org/)
 
 > **PH Control** es una plataforma completa para la administración y gestión de Propiedades Horizontales en Panamá, diseñada específicamente para cumplir con los requisitos de la **Ley 284 de Propiedad Horizontal**.
 
@@ -80,14 +80,15 @@
 
 ## Requisitos Técnicos
 
-- Docker y Docker Compose
-- Puerto 5003 disponible para la aplicación web
-- Puerto 5435 disponible para la base de datos PostgreSQL
+- Node.js 18+ y npm
+- Puerto 3000 disponible para la API
+- MongoDB (local o en la nube)
 
 ## 🚀 Instalación Rápida
 
 ### Prerrequisitos
-- Docker y Docker Compose
+- Node.js 18+
+- npm
 - Git
 
 ### Instalación
@@ -98,38 +99,45 @@
    cd servicios
    ```
 
-2. **Iniciar con Docker Compose**
+2. **Instalar dependencias**
    ```bash
-   docker-compose up -d
+   npm install
    ```
 
-3. **Acceder a la aplicación**
+3. **Ejecutar en modo desarrollo**
+   ```bash
+   npm run dev
    ```
-   🌐 http://localhost:5003
+
+4. **Acceder a la API**
+   ```
+   🌐 http://localhost:3000
    ```
 
 ### 🔧 Configuración de Desarrollo
 
-Para desarrollo local sin Docker:
+Para desarrollo local:
 ```bash
 # Instalar dependencias
-pip install -r requirements.txt
+npm install
 
-# Configurar base de datos
-export DATABASE_URL="sqlite:///ph_control.db"
+# Ejecutar en modo desarrollo (con hot reload)
+npm run dev
 
-# Ejecutar aplicación
-python app.py
+# O ejecutar versión compilada
+npm run build
+npm start
 ```
 
 
 ## 🛠️ Tecnologías Utilizadas
 
 ### Backend
-- **🐍 Python 3.11+** con **Flask** framework
-- **🗄️ PostgreSQL** como base de datos principal
-- **🔐 Flask-Login** para autenticación
-- **📧 Flask-Mail** para notificaciones por email
+- **📘 TypeScript** con **Node.js** y **Express**
+- **🗄️ MongoDB** con **Mongoose** ODM
+- **🔐 JWT** para autenticación
+- **🛡️ Helmet** y **CORS** para seguridad
+- **⚡ Express Rate Limit** para control de tasa
 
 ### Frontend
 - **🎨 Bootstrap 5** para UI responsiva
@@ -138,31 +146,34 @@ python app.py
 - **🎯 jQuery** para interactividad
 
 ### DevOps & Deployment
-- **🐳 Docker** y **Docker Compose**
+- **📦 npm** para gestión de dependencias
+- **🔨 TypeScript Compiler** para compilación
 - **☁️ Koyeb** para deployment en la nube
 - **🔄 GitHub Actions** para CI/CD
 
 ### Utilidades
-- **📄 ReportLab** para generación de PDFs
-- **📅 Schedule** para tareas programadas
-- **🔒 Werkzeug** para seguridad
+- **🔐 bcryptjs** para hashing de contraseñas
+- **📝 express-validator** para validación
+- **📊 Mongoose** para modelado de datos
 
 ## 📁 Arquitectura del Proyecto
 
 ```
 ph-control/
-├── 📁 routes/           # Controladores de la aplicación
-│   ├── api.py          # Endpoints de API REST
-│   ├── auth.py         # Autenticación y usuarios
-│   ├── dashboard.py    # Paneles de control
-│   └── ...
-├── 📁 models/          # Modelos de datos SQLAlchemy
-├── 📁 templates/       # Plantillas Jinja2
-├── 📁 static/          # CSS, JS, imágenes
-├── 📁 utils/           # Utilidades y helpers
-├── 🐳 docker-compose.yml
-├── 📋 requirements.txt
-└── 🚀 app.py           # Punto de entrada
+├── 📁 src/             # Código fuente TypeScript
+│   ├── routes/         # Rutas de la API
+│   │   ├── auth.ts     # Autenticación
+│   │   ├── users.ts    # Gestión de usuarios
+│   │   └── properties.ts # Gestión de propiedades
+│   ├── models/         # Modelos de MongoDB
+│   ├── middleware/     # Middleware personalizado
+│   └── utils/          # Utilidades
+├── 📁 templates/       # Plantillas HTML (opcional)
+├── 📁 static/          # Archivos estáticos
+├── 📁 dist/            # Código compilado
+├── 📋 package.json     # Dependencias y scripts
+├── 📋 tsconfig.json    # Configuración TypeScript
+└── 🚀 src/server.ts    # Punto de entrada
 ```
 
 ## 🤝 Contribución

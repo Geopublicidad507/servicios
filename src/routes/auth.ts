@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { body, validationResult } from 'express-validator';
@@ -11,7 +11,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key';
 router.post('/login', [
   body('email').isEmail().normalizeEmail(),
   body('password').isLength({ min: 6 })
-], async (req, res) => {
+], async (req: Request, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -60,7 +60,7 @@ router.post('/register', [
   body('password').isLength({ min: 6 }),
   body('firstName').notEmpty(),
   body('lastName').notEmpty()
-], async (req, res) => {
+], async (req: Request, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
