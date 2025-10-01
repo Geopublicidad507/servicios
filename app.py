@@ -80,16 +80,107 @@ def dashboard():
 
 @app.route('/dashboard/admin')
 def dashboard_admin():
-    return jsonify({'message': 'Dashboard Admin - Requiere autenticación', 'login_url': '/auth/login'})
+    from flask_login import login_required, current_user
+    if not current_user.is_authenticated:
+        return redirect('/auth/login')
+    return render_template('dashboard/index.html', 
+                         stats={'total_properties': 1, 'total_units': 10, 'pending_tasks': 2, 'monthly_income': 7500},
+                         recent_activities=[], alerts=[], unread_notifications_count=0)
 
 @app.route('/dashboard/resident')
 def dashboard_resident():
-    return jsonify({'message': 'Dashboard Residente - Requiere autenticación', 'login_url': '/auth/login'})
+    from flask_login import login_required, current_user
+    if not current_user.is_authenticated:
+        return redirect('/auth/login')
+    return render_template('dashboard/index.html', 
+                         stats={'total_properties': 1, 'total_units': 10, 'pending_tasks': 2, 'monthly_income': 7500},
+                         recent_activities=[], alerts=[], unread_notifications_count=0)
 
 @app.route('/static/<path:filename>')
 def static_files(filename):
     from flask import send_from_directory
     return send_from_directory('static', filename)
+
+# Rutas de módulos
+@app.route('/financial')
+@app.route('/financial/<path:subpath>')
+def financial_module(subpath=None):
+    from flask_login import current_user
+    if not current_user.is_authenticated:
+        return redirect('/auth/login')
+    return render_template('dashboard/index.html', 
+                         stats={'total_properties': 1, 'total_units': 10, 'pending_tasks': 2, 'monthly_income': 7500},
+                         recent_activities=[], alerts=[], unread_notifications_count=0)
+
+@app.route('/communication')
+@app.route('/communication/<path:subpath>')
+def communication_module(subpath=None):
+    from flask_login import current_user
+    if not current_user.is_authenticated:
+        return redirect('/auth/login')
+    return render_template('dashboard/index.html', 
+                         stats={'total_properties': 1, 'total_units': 10, 'pending_tasks': 2, 'monthly_income': 7500},
+                         recent_activities=[], alerts=[], unread_notifications_count=0)
+
+@app.route('/maintenance')
+@app.route('/maintenance/<path:subpath>')
+def maintenance_module(subpath=None):
+    from flask_login import current_user
+    if not current_user.is_authenticated:
+        return redirect('/auth/login')
+    return render_template('dashboard/index.html', 
+                         stats={'total_properties': 1, 'total_units': 10, 'pending_tasks': 2, 'monthly_income': 7500},
+                         recent_activities=[], alerts=[], unread_notifications_count=0)
+
+@app.route('/security')
+@app.route('/security/<path:subpath>')
+def security_module(subpath=None):
+    from flask_login import current_user
+    if not current_user.is_authenticated:
+        return redirect('/auth/login')
+    return render_template('dashboard/index.html', 
+                         stats={'total_properties': 1, 'total_units': 10, 'pending_tasks': 2, 'monthly_income': 7500},
+                         recent_activities=[], alerts=[], unread_notifications_count=0)
+
+@app.route('/legal')
+@app.route('/legal/<path:subpath>')
+def legal_module(subpath=None):
+    from flask_login import current_user
+    if not current_user.is_authenticated:
+        return redirect('/auth/login')
+    return render_template('dashboard/index.html', 
+                         stats={'total_properties': 1, 'total_units': 10, 'pending_tasks': 2, 'monthly_income': 7500},
+                         recent_activities=[], alerts=[], unread_notifications_count=0)
+
+@app.route('/documents')
+@app.route('/documents/<path:subpath>')
+def documents_module(subpath=None):
+    from flask_login import current_user
+    if not current_user.is_authenticated:
+        return redirect('/auth/login')
+    return render_template('dashboard/index.html', 
+                         stats={'total_properties': 1, 'total_units': 10, 'pending_tasks': 2, 'monthly_income': 7500},
+                         recent_activities=[], alerts=[], unread_notifications_count=0)
+
+@app.route('/admin')
+@app.route('/admin/<path:subpath>')
+def admin_module(subpath=None):
+    from flask_login import current_user
+    if not current_user.is_authenticated:
+        return redirect('/auth/login')
+    return render_template('dashboard/index.html', 
+                         stats={'total_properties': 1, 'total_units': 10, 'pending_tasks': 2, 'monthly_income': 7500},
+                         recent_activities=[], alerts=[], unread_notifications_count=0)
+
+@app.route('/notifications')
+@app.route('/notifications/<path:subpath>')
+def notifications_module(subpath=None):
+    from flask_login import current_user
+    if not current_user.is_authenticated:
+        return redirect('/auth/login')
+    return render_template('dashboard/index.html', 
+                         stats={'total_properties': 1, 'total_units': 10, 'pending_tasks': 2, 'monthly_income': 7500},
+                         recent_activities=[], alerts=[], unread_notifications_count=0)
 
 @app.route('/<path:filename>')
 def catch_all(filename):
@@ -101,18 +192,7 @@ def catch_all(filename):
             return send_from_directory('static', filename)
         except:
             return '', 404
-    if filename in ['login', 'dashboard', 'admin']:
-        return jsonify({
-            'message': 'Esta es una API REST. Use los endpoints disponibles.',
-            'login_endpoint': '/api/auth/login',
-            'available_endpoints': {
-                'auth': '/api/auth/login',
-                'users': '/api/users',
-                'health': '/health',
-                'stats': '/api/users/stats'
-            }
-        })
-    return jsonify({'error': 'Endpoint not found', 'available_endpoints': ['/api/auth/login', '/api/users', '/health']}), 404
+    return redirect('/auth/login')
 
 @app.route('/health')
 def health():
