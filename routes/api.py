@@ -4,7 +4,7 @@ API routes for PH Control
 from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 from utils.notifications import notification_manager
-from models import Notification, User, db
+from models_mongo import NotificationDoc, User
 from datetime import datetime
 
 api_bp = Blueprint('api', __name__)
@@ -20,7 +20,7 @@ def check_notifications():
             return jsonify({'new_notifications': 0, 'authenticated': False})
 
         # Count unread notifications for current user
-        count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+        count = NotificationDoc.objects(user_id=current_user.id, is_read=False).count()
         return jsonify({'new_notifications': count, 'authenticated': True})
 
     except Exception as e:
@@ -42,14 +42,12 @@ def api_list_notifications():
             query['is_read'] = False
 
         # Get notifications with pagination
-        notifications_query = Notification.query.filter_by(**query)
-        notifications_query = notifications_query.order_by(Notification.created_at.desc())
-        notifications = notifications_query.offset(offset).limit(limit).all()
+        notifications = NotificationDoc.objects(**query).order_by('-created_at').skip(offset).limit(limit)
 
         notifications_data = []
         for notification in notifications:
             notifications_data.append({
-                'id': notification.id,
+                'id': str(notification.id),
                 'title': notification.title,
                 'message': notification.message,
                 'type': notification.notification_type,
@@ -61,7 +59,7 @@ def api_list_notifications():
             })
 
         # Get total unread count
-        unread_count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+        unread_count = NotificationDoc.objects(user_id=current_user.id, is_read=False).count()
 
         return jsonify({
             'notifications': notifications_data,
@@ -77,7 +75,7 @@ def api_list_notifications():
 def api_unread_count():
     """API endpoint para obtener número de notificaciones no leídas."""
     try:
-        count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+        count = NotificationDoc.objects(user_id=current_user.id, is_read=False).count()
         return jsonify({'count': count})
 
     except Exception as e:
@@ -90,13 +88,13 @@ def mark_notification_read(notification_id):
     """Marcar notificación como leída."""
     try:
         # Find and update notification
-        notification = Notification.query.filter_by(id=notification_id, user_id=current_user.id).first()
-        if not notification:
+        try:
+            notification = NotificationDoc.objects.get(id=notification_id, user_id=current_user.id)
+            notification.is_read = True
+            notification.read_at = datetime.utcnow()
+            notification.save()
+        except NotificationDoc.DoesNotExist:
             return jsonify({'error': 'Notificación no encontrada'}), 404
-
-        notification.is_read = True
-        notification.read_at = datetime.utcnow()
-        db.session.commit()
 
         return jsonify({'success': True})
 
@@ -112,11 +110,10 @@ def mark_all_notifications_read():
     """Marcar todas las notificaciones como leídas."""
     try:
         # Update all unread notifications for current user
-        count = Notification.query.filter_by(user_id=current_user.id, is_read=False).update({
-            'is_read': True,
-            'read_at': datetime.utcnow()
-        })
-        db.session.commit()
+        count = NotificationDoc.objects(user_id=current_user.id, is_read=False).update(
+            set__is_read=True,
+            set__read_at=datetime.utcnow()
+        )
         return jsonify({'success': True, 'count': count})
 
     except Exception as e:
@@ -129,12 +126,11 @@ def delete_notification(notification_id):
     """Eliminar notificación."""
     try:
         # Find and delete notification
-        notification = Notification.query.filter_by(id=notification_id, user_id=current_user.id).first()
-        if notification:
-            db.session.delete(notification)
-            db.session.commit()
+        try:
+            notification = NotificationDoc.objects.get(id=notification_id, user_id=current_user.id)
+            notification.delete()
             return jsonify({'success': True})
-        else:
+        except NotificationDoc.DoesNotExist:
             return jsonify({'error': 'Notificación no encontrada'}), 404
 
     except Exception as e:

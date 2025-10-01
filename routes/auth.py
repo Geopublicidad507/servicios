@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
-from models import User, db
+from models_mongo import User
 from datetime import datetime
 from utils.audit import audit_logger, log_login_attempt
 
@@ -21,10 +21,13 @@ def login():
             flash('Por favor completa todos los campos.', 'error')
             return render_template('auth/login.html')
         
-        user = User.query.filter_by(email=email).first()
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            user = None
         if user and user.check_password(password) and user.is_active:
             user.last_login = datetime.utcnow()
-            db.session.commit()
+            user.save()
             login_user(user, remember=remember)
         
         if user:
@@ -74,10 +77,12 @@ def register():
             return render_template('auth/register.html')
         
         # Check if user already exists
-        existing_user = User.query.filter_by(email=email).first()
-        if existing_user:
+        try:
+            User.objects.get(email=email)
             flash('Ya existe un usuario con este email.', 'error')
             return render_template('auth/register.html')
+        except User.DoesNotExist:
+            pass
         
         # Create new user
         user = User(
@@ -90,12 +95,10 @@ def register():
         user.set_password(password)
         
         try:
-            db.session.add(user)
-            db.session.commit()
+            user.save()
             flash('Registro exitoso. Puedes iniciar sesión ahora.', 'success')
             return redirect(url_for('auth.login'))
         except Exception as e:
-            db.session.rollback()
             flash('Error al crear la cuenta. Intenta nuevamente.', 'error')
     
     return render_template('auth/register.html')
@@ -113,7 +116,10 @@ def logout():
 def forgot_password():
     if request.method == 'POST':
         email = request.form.get('email')
-        user = User.query.filter_by(email=email).first()
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            user = None
         
         if user:
             # TODO: Implement password reset email functionality
@@ -152,10 +158,9 @@ def profile():
             current_user.set_password(new_password)
         
         try:
-            db.session.commit()
+            current_user.save()
             flash('Perfil actualizado exitosamente.', 'success')
         except Exception as e:
-            db.session.rollback()
             flash('Error al actualizar el perfil.', 'error')
     
     return render_template('auth/profile.html')
