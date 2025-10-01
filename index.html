@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PH Control - Sistema de Gestión de Propiedades Horizontales</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- AOS Animation Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --info-color: #0dcaf0;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --dark-color: #212529;
+            --light-color: #f8f9fa;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0056b3 100%);
+            color: white;
+            padding: 100px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="rgba(255,255,255,0.1)"><polygon points="1000,100 1000,0 0,100"/></svg>');
+            background-size: cover;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .feature-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1rem;
+        }
+
+        .stats-section {
+            background: var(--light-color);
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            display: block;
+        }
+
+        .testimonial-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin: 1rem 0;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, var(--success-color) 0%, #146c43 100%);
+            color: white;
+            padding: 80px 0;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .btn-custom {
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .section-title {
+            position: relative;
+            margin-bottom: 3rem;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .pricing-card {
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pricing-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-5px);
+        }
+
+        .pricing-card.featured {
+            border-color: var(--primary-color);
+            transform: scale(1.05);
+        }
+
+        .pricing-card.featured::before {
+            content: 'Más Popular';
+            position: absolute;
+            top: 20px;
+            right: -30px;
+            background: var(--primary-color);
+            color: white;
+            padding: 5px 40px;
+            transform: rotate(45deg);
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .footer {
+            background: var(--dark-color);
+            color: white;
+            padding: 50px 0 20px;
+        }
+
+        .footer a {
+            color: #adb5bd;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 60px 0;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+
+            .pricing-card.featured {
+                transform: none;
+                margin-top: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand text-primary" href="#home">
+                <i class="bi bi-building"></i> PH Control
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#home">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#features">Características</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#pricing">Precios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#testimonials">Testimonios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact">Contacto</a>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <a class="btn btn-primary btn-custom" href="https://awkward-gwendolen-consultor351-b4be20ea.koyeb.app/auth/login">Iniciar Sesión</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 hero-content" data-aos="fade-right">
+                    <h1 class="display-4 fw-bold mb-4">
+                        Gestiona tu Propiedad Horizontal con <span class="text-warning">PH Control</span>
+                    </h1>
+                    <p class="lead mb-4">
+                        Sistema integral para la administración de propiedades horizontales en cumplimiento
+                        con la Ley 284 de Propiedad Horizontal de la República de Panamá.
+                    </p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="https://awkward-gwendolen-consultor351-b4be20ea.koyeb.app/auth/register" class="btn btn-warning btn-custom btn-lg">
+                            <i class="bi bi-rocket-takeoff"></i> Comenzar Gratis
+                        </a>
+                        <a href="#features" class="btn btn-outline-light btn-custom btn-lg">
+                            <i class="bi bi-play-circle"></i> Ver Demo
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6" data-aos="fade-left">
+                    <div class="text-center">
+                        <i class="bi bi-building display-1 text-warning opacity-75"></i>
+                        <div class="row mt-4">
+                            <div class="col-4">
+                                <i class="bi bi-shield-check display-6 text-success"></i>
+                                <p class="small mt-2">Seguro</p>
+                            </div>
+                            <div class="col-4">
+                                <i class="bi bi-graph-up display-6 text-info"></i>
+                                <p class="small mt-2">Eficiente</p>
+                            </div>
+                            <div class="col-4">
+                                <i class="bi bi-people display-6 text-warning"></i>
+                                <p class="small mt-2">Colaborativo</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="100">
+                    <div class="stat-item">
+                        <span class="stat-number" data-count="500">0</span>
+                        <p class="text-muted">Propiedades Gestionadas</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="200">
+                    <div class="stat-item">
+                        <span class="stat-number" data-count="15000">0</span>
+                        <p class="text-muted">Unidades Administradas</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="300">
+                    <div class="stat-item">
+                        <span class="stat-number" data-count="98">0</span>
+                        <p class="text-muted">% Satisfacción</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="400">
+                    <div class="stat-item">
+                        <span class="stat-number" data-count="24">0</span>
+                        <p class="text-muted">Soporte 24/7</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h2 class="section-title" data-aos="fade-up">Características Principales</h2>
+                    <p class="lead text-muted" data-aos="fade-up" data-aos-delay="100">
+                        Todo lo que necesitas para administrar tu propiedad horizontal de manera eficiente
+                    </p>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <div class="feature-icon bg-primary text-white">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                        <h4>Gestión Financiera</h4>
+                        <p class="text-muted">
+                            Control completo de pagos, gastos, presupuestos y reportes financieros.
+                            Genera estados de resultados automáticamente.
+                        </p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="bi bi-check-circle text-success"></i> Registro de pagos</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Control de gastos</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Reportes automáticos</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Estados financieros</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <div class="feature-icon bg-success text-white">
+                            <i class="bi bi-tools"></i>
+                        </div>
+                        <h4>Mantenimiento</h4>
+                        <p class="text-muted">
+                            Programa y gestiona tareas de mantenimiento preventivo y correctivo.
+                            Asigna proveedores y controla costos.
+                        </p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="bi bi-check-circle text-success"></i> Mantenimiento preventivo</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Gestión de proveedores</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Calendario de tareas</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Control de costos</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <div class="feature-icon bg-info text-white">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <h4>Seguridad</h4>
+                        <p class="text-muted">
+                            Control de acceso y registro de visitantes. Mantén la seguridad
+                            de tu propiedad con reportes detallados.
+                        </p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="bi bi-check-circle text-success"></i> Registro de visitantes</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Control de acceso</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Reportes de seguridad</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Estadísticas</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="400">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <div class="feature-icon bg-warning text-white">
+                            <i class="bi bi-file-earmark-text"></i>
+                        </div>
+                        <h4>Gestión Legal</h4>
+                        <p class="text-muted">
+                            Cumple con la Ley 284. Gestiona asambleas, genera actas
+                            y mantén toda la documentación legal al día.
+                        </p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="bi bi-check-circle text-success"></i> Gestión de asambleas</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Generación de actas</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Cumplimiento Ley 284</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Documentos legales</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="500">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <div class="feature-icon bg-danger text-white">
+                            <i class="bi bi-chat-dots"></i>
+                        </div>
+                        <h4>Comunicación</h4>
+                        <p class="text-muted">
+                            Sistema integrado de comunicación con residentes.
+                            Notificaciones, tickets y tablón de avisos.
+                        </p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="bi bi-check-circle text-success"></i> Notificaciones</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Sistema de tickets</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Tablón de avisos</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Comunicación directa</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="600">
+                    <div class="card feature-card h-100 text-center p-4">
+                        <div class="feature-icon bg-secondary text-white">
+                            <i class="bi bi-folder"></i>
+                        </div>
+                        <h4>Documentos</h4>
+                        <p class="text-muted">
+                            Almacenamiento seguro y organizado de todos los documentos.
+                            Control de versiones y acceso controlado.
+                        </p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="bi bi-check-circle text-success"></i> Almacenamiento seguro</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Control de versiones</li>
+                            <li><i class="bi bi-check-circle text-start">Categorización</li>
+                            <li><i class="bi bi-check-circle text-success"></i> Búsqueda avanzada</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-5 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h2 class="section-title" data-aos="fade-up">Planes y Precios</h2>
+                    <p class="lead text-muted" data-aos="fade-up" data-aos-delay="100">
+                        Elige el plan que mejor se adapte a tu propiedad horizontal
+                    </p>
+                </div>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="card pricing-card h-100">
+                        <div class="card-body text-center p-4">
+                            <h3 class="card-title">Básico</h3>
+                            <div class="display-4 text-primary fw-bold">$29</div>
+                            <p class="text-muted">por mes</p>
+                            <hr>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="bi bi-check text-success"></i> Hasta 50 unidades</li>
+                                <li class="mb-2"><i class="bi bi-check text-success"></i> Gestión financiera básica</li>
+                                <li class="mb-2"><i class="bi bi-check text-success"></i> Comunicación con residentes</li>
+                                <li class="mb-2"><i class="bi bi-check text-success"></i> Soporte por email</li>
+                                <li class="mb-2"><i class="bi bi-x text-danger"></i> Reportes avanzados</li>
+                                <li class="mb-2"><i class="bi bi-x text-danger"></i> API integración</li>
+                            </ul>
+                            <a href="https://awkward-gwendolen-consultor351-b4be20ea.koyeb.app/auth/register" class="btn btn-outline-primary btn-custom w-100">
+                                Comenzar Prueba
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="card pricing-card featured h-100">
+                        <div class="card-body text-center p-4">
+                            <h3 class="card-title">Profesional</h3>
+                            <div class="display-4 text-primary fw-bold">$59</div>
+                            <p class="text-muted">por mes</p>
+                            <hr>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="bi bi-check text-success"></i> Hasta 200 unidades</li>
+                                <li class="mb-2"><i class="bi bi-check text-success"></i> Todas las funciones básicas</li>
+                                <li class="mb-2"><i class="bi bi-check text-success"></i> Reportes avanzados</li>
+                                <li class="mb-2"><i class="bi bi-check text-success"></i> Soporte prioritario</li>
+                                <li class="mb-2"><i class="bi bi-check text-success"></i> Backup automático</li>
+                                <li class="mb-2"><i class="bi bi-check text-success"></i> API básica</li>
+                            </ul>
+                            <a href="https://awkward-gwendolen-consultor351-b4be20ea.koyeb.app/auth/register" class="btn btn-primary btn-custom w-100">
+                                Más Popular
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="card pricing-card h-100">
+                        <div class="card-body text-center p-4">
+                            <h3 class="card-title">Empresarial</h3>
+                            <div class="display-4 text-primary fw-bold">$99</div>
+                            <p class="text-muted">por mes</p>
+                            <hr>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="bi bi-check text-success"></i> Unidades ilimitadas</li>
+                                <li class="mb-2"><i class="bi bi-check text-success"></i> Todas las funciones</li>
+                                <li class="mb-2"><i class="bi bi-check text-success"></i> API completa</li>
+                                <li class="mb-2"><i class="bi bi-check text-success"></i> Soporte 24/7</li>
+                                <li class="mb-2"><i class="bi bi-check text-success"></i> Personalización</li>
+                                <li class="mb-2"><i class="bi bi-check text-success"></i> Consultoría incluida</li>
+                            </ul>
+                            <a href="#contact" class="btn btn-outline-primary btn-custom w-100">
+                                Contactar Ventas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h2 class="section-title" data-aos="fade-up">Lo que dicen nuestros clientes</h2>
+                    <p class="lead text-muted" data-aos="fade-up" data-aos-delay="100">
+                        Administradores satisfechos en toda Panamá
+                    </p>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="testimonial-card">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <i class="bi bi-person text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">María González</h6>
+                                <small class="text-muted">Administradora - Residencial Las Flores</small>
+                            </div>
+                        </div>
+                        <p class="text-muted">
+                            "PH Control ha revolucionado la forma en que administramos nuestra propiedad. Los reportes financieros son increíbles y el soporte es excelente."
+                        </p>
+                        <div class="text-warning">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="testimonial-card">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-success rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <i class="bi bi-person text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Carlos Mendoza</h6>
+                                <small class="text-muted">Administrador - Torre Oceania</small>
+                            </div>
+                        </div>
+                        <p class="text-muted">
+                            "La gestión de mantenimiento es fantástica. Ahora podemos programar todo con anticipación y los residentes están más satisfechos."
+                        </p>
+                        <div class="text-warning">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 mb-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="testimonial-card">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-info rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <i class="bi bi-person text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">Ana Rodríguez</h6>
+                                <small class="text-muted">Administradora - Conjunto Residencial El Dorado</small>
+                            </div>
+                        </div>
+                        <p class="text-muted">
+                            "El cumplimiento con la Ley 284 es perfecto. Las asambleas son más organizadas y toda la documentación está siempre al día."
+                        </p>
+                        <div class="text-warning">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="row justify-content-center text-center">
+                <div class="col-lg-8" data-aos="fade-up">
+                    <h2 class="display-5 fw-bold mb-4">
+                        ¿Listo para transformar tu administración?
+                    </h2>
+                    <p class="lead mb-4">
+                        Únete a cientos de administradores que ya confían en PH Control para gestionar sus propiedades horizontales de manera eficiente.
+                    </p>
+                    <div class="d-flex flex-wrap justify-content-center gap-3">
+                        <a href="https://awkward-gwendolen-consultor351-b4be20ea.koyeb.app/auth/register" class="btn btn-warning btn-custom btn-lg">
+                            <i class="bi bi-rocket-takeoff"></i> Comenzar Prueba Gratuita
+                        </a>
+                        <a href="#contact" class="btn btn-outline-light btn-custom btn-lg">
+                            <i class="bi bi-telephone"></i> Contactar Ventas
+                        </a>
+                    </div>
+                    <p class="small mt-3 opacity-75">
+                        <i class="bi bi-shield-check"></i> Sin compromiso • Cancelación en cualquier momento
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-5 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h2 class="section-title" data-aos="fade-up">Contáctanos</h2>
+                    <p class="lead text-muted" data-aos="fade-up" data-aos-delay="100">
+                        Estamos aquí para ayudarte a comenzar
+                    </p>
+                </div>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-4" data-aos="fade-up" data-aos-delay="100">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-telephone"></i>
+                            </div>
+                            <h5>Teléfono</h5>
+                            <p class="text-muted">+507 6000-0000</p>
+                        </div>
+
+                        <div class="col-md-4 text-center mb-4" data-aos="fade-up" data-aos-delay="200">
+                            <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-envelope"></i>
+                            </div>
+                            <h5>Email</h5>
+                            <p class="text-muted">info@phcontrol.com</p>
+                        </div>
+
+                        <div class="col-md-4 text-center mb-4" data-aos="fade-up" data-aos-delay="300">
+                            <div class="bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-geo-alt"></i>
+                            </div>
+                            <h5>Ubicación</h5>
+                            <p class="text-muted">Ciudad de Panamá, Panamá</p>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm" data-aos="fade-up" data-aos-delay="400">
+                        <div class="card-body p-4">
+                            <form>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="name" class="form-label">Nombre</label>
+                                        <input type="text" class="form-control" id="name" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="email" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="subject" class="form-label">Asunto</label>
+                                    <input type="text" class="form-control" id="subject" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="message" class="form-label">Mensaje</label>
+                                    <textarea class="form-control" id="message" rows="5" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-custom w-100">
+                                    <i class="bi bi-send"></i> Enviar Mensaje
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5 class="text-white mb-3">
+                        <i class="bi bi-building"></i> PH Control
+                    </h5>
+                    <p class="text-muted">
+                        Sistema integral para la administración de propiedades horizontales en cumplimiento con la Ley 284 de la República de Panamá.
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-muted"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="text-muted"><i class="bi bi-twitter"></i></a>
+                        <a href="#" class="text-muted"><i class="bi bi-linkedin"></i></a>
+                        <a href="#" class="text-muted"><i class="bi bi-instagram"></i></a>
+                    </div>
+                </div>
+
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="text-white mb-3">Producto</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#features">Características</a></li>
+                        <li><a href="#pricing">Precios</a></li>
+                        <li><a href="#">Documentación</a></li>
+                        <li><a href="#">API</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="text-white mb-3">Empresa</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Acerca de</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Carreras</a></li>
+                        <li><a href="#contact">Contacto</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="text-white mb-3">Soporte</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Centro de Ayuda</a></li>
+                        <li><a href="#">Tutoriales</a></li>
+                        <li><a href="#">Estado del Sistema</a></li>
+                        <li><a href="#">Reportar Bug</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h6 class="text-white mb-3">Legal</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#">Términos de Uso</a></li>
+                        <li><a href="#">Política de Privacidad</a></li>
+                        <li><a href="#">Cookies</a></li>
+                        <li><a href="#">Ley 284</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="text-muted mb-0">
+                        &copy; 2024 PH Control. Todos los derechos reservados.
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text-muted mb-0">
+                        Cumplimiento Ley 284 - República de Panamá
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- AOS Animation -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 1000,
+            once: true
+        });
+
+        // Counter animation
+        function animateCounters() {
+            const counters = document.querySelectorAll('[data-count]');
+
+            counters.forEach(counter => {
+                const target = parseInt(counter.getAttribute('data-count'));
+                const increment = target / 100;
+                let current = 0;
+
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    counter.textContent = Math.floor(current);
+                }, 20);
+            });
+        }
+
+        // Trigger counter animation when stats section is visible
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateCounters();
+                    observer.unobserve(entry.target);
+                }
+            });
+        });
+
+        const statsSection = document.querySelector('.stats-section');
+        if (statsSection) {
+            observer.observe(statsSection);
+        }
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Navbar background on scroll
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('shadow');
+            } else {
+                navbar.classList.remove('shadow');
+            }
+        });
+
+        // Contact form submission
+        document.querySelector('#contact form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Show success message
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.innerHTML;
+
+            button.innerHTML = '<i class="bi bi-check-circle"></i> Mensaje Enviado';
+            button.classList.remove('btn-primary');
+            button.classList.add('btn-success');
+            button.disabled = true;
+
+            // Reset form
+            this.reset();
+
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('btn-success');
+                button.classList.add('btn-primary');
+                button.disabled = false;
+            }, 3000);
+        });
+    </script>
+
+</body>
+</html>

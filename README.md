@@ -24,6 +24,8 @@
 
 **Accede a la aplicación en producción:** [PH Control Live](https://awkward-gwendolen-consultor351-b4be20ea.koyeb.app/)
 
+> **Nota:** Esta es la aplicación oficial de PH Control desplegada en Koyeb. La URL anterior (ph.conectandopersonas.life) corresponde a un sitio web diferente.
+
 ### 📋 Módulos del Sistema
 
 | Módulo | Descripción | Estado |
@@ -191,4 +193,5 @@ Este proyecto está licenciado bajo la **Licencia MIT** - ver el archivo [LICENS
     <a href="https://github.com/Geopublicidad507/servicios">📂 Código Fuente</a> •
     <a href="https://github.com/Geopublicidad507/servicios/issues">🐛 Reportar Bug</a>
   </p>
+  <p><small>🚀 Desplegado en <a href="https://www.koyeb.com">Koyeb</a> • 📍 Panamá 🇵🇦</small></p>
 </div>
