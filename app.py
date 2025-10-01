@@ -104,6 +104,11 @@ def create_app():
             else:
                 return redirect(url_for('dashboard.index'))
         return render_template('landing.html')
+
+    # Favicon route
+    @app.route('/favicon.ico')
+    def favicon():
+        return '', 204
     
     # Error handlers
     @app.errorhandler(404)
