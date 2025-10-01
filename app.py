@@ -49,10 +49,33 @@ def favicon():
 def login_page():
     return jsonify({'message': 'Use POST /api/auth/login for authentication'})
 
+@app.route('/auth/login')
+def auth_login_redirect():
+    return jsonify({
+        'message': 'Use POST /api/auth/login for authentication',
+        'endpoint': '/api/auth/login',
+        'method': 'POST',
+        'example': {
+            'email': 'admin@phcontrol.com',
+            'password': 'admin123'
+        }
+    })
+
 @app.route('/<path:filename>')
 def catch_all(filename):
-    if filename.endswith(('.woff', '.woff2', '.ttf', '.eot')):
+    if filename.endswith(('.woff', '.woff2', '.ttf', '.eot', '.css', '.js')):
         return '', 404
+    if filename in ['login', 'dashboard', 'admin']:
+        return jsonify({
+            'message': 'Esta es una API REST. Use los endpoints disponibles.',
+            'login_endpoint': '/api/auth/login',
+            'available_endpoints': {
+                'auth': '/api/auth/login',
+                'users': '/api/users',
+                'health': '/health',
+                'stats': '/api/users/stats'
+            }
+        })
     return jsonify({'error': 'Endpoint not found', 'available_endpoints': ['/api/auth/login', '/api/users', '/health']}), 404
 
 @app.route('/health')
@@ -106,7 +129,7 @@ def login():
 @app.route('/api/users')
 def get_users():
     try:
-        users = User.objects(is_active=True).only('email', 'first_name', 'last_name', 'role', 'created_at')
+        users = User.objects(is_active=True).only('email', 'first_name', 'last_name', 'role', 'phone', 'created_at')
         users_data = []
         for user in users:
             users_data.append({
@@ -114,10 +137,39 @@ def get_users():
                 'email': user.email,
                 'firstName': user.first_name,
                 'lastName': user.last_name,
+                'fullName': f"{user.first_name} {user.last_name}",
                 'role': user.role,
+                'phone': user.phone,
                 'createdAt': user.created_at.isoformat()
             })
         return jsonify(users_data)
+    except Exception as e:
+        return jsonify({'error': 'Error del servidor'}), 500
+
+@app.route('/api/users/create', methods=['POST'])
+def create_user():
+    try:
+        from create_users import create_all_users
+        create_all_users()
+        return jsonify({'message': 'Usuarios creados exitosamente'})
+    except Exception as e:
+        return jsonify({'error': 'Error creando usuarios'}), 500
+
+@app.route('/api/users/stats')
+def user_stats():
+    try:
+        stats = {
+            'total': User.objects.count(),
+            'active': User.objects(is_active=True).count(),
+            'by_role': {
+                'admin_general': User.objects(role='admin_general').count(),
+                'admin_ph': User.objects(role='admin_ph').count(),
+                'resident': User.objects(role='resident').count(),
+                'provider': User.objects(role='provider').count(),
+                'visitor': User.objects(role='visitor').count()
+            }
+        }
+        return jsonify(stats)
     except Exception as e:
         return jsonify({'error': 'Error del servidor'}), 500
 
